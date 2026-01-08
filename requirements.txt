@@ -1,0 +1,31 @@
+# Core
+gunicorn        # Servidor WSGI para produção (melhor que o servidor embutido do Flask)
+Flask==3.0.0
+Werkzeug==3.0.1
+Jinja2==3.1.2
+itsdangerous==2.1.2
+click==8.1.7
+
+# Database
+Flask-SQLAlchemy
+Flask-Migrate
+psycopg2-binary
+python-dotenv
+sqlalchemy==2.0.43
+
+# Authentication
+Flask-Login==0.6.3
+Flask-Cors==4.0.0
+
+# Environment
+python-dotenv==1.0.0
+
+# Development
+pytest==7.4.3
+pytest-cov==4.1.0
+black==23.11.0
+flake8==6.1.0
+
+# Utilities
+requests==2.31.0
+python-dateutil==2.8.2
