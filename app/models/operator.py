@@ -1,42 +1,53 @@
 # app/models/operator.py
-from ..database import db
+from ..database.database_config import Base
 from datetime import datetime
+from typing import List
+from typing import Optional
+
+from sqlalchemy import ForeignKey
+from sqlalchemy import func
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy import CheckConstraint
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
-class Operator(db.Model):
+class Operator(Base):
     __tablename__ = 'operators'
 
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    email = db.Column(db.String(100), unique=True, nullable=False)
-    full_name = db.Column(db.String(100), nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)
-    role = db.Column(
-        db.String(20),
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    full_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[str] = mapped_column(
+        String(20),
         default='operator',
         nullable=False,
         server_default='operator'
     )
-    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
-    last_login = db.Column(db.DateTime(timezone=True))
-    status = db.Column(
-        db.String(20),
+    created_at: Mapped[datetime] = mapped_column(insert_default=func.now())
+    last_login: Mapped[datetime] = mapped_column(insert_default=func.now())
+    status: Mapped[str] = mapped_column(
+        String(20),
         default='active',
         nullable=False,
         server_default='active'
     )
 
-    # Relacionamentos
-    telecommands = db.relationship('Telecommand', back_populates='operator')
-    execution_logs = db.relationship('ExecutionLog', back_populates='creator')
+    # Relationships (temporarily disabled for testing)
+    # telecommands: Mapped[List["Telecommand"]] = relationship(back_populates='operator')
+    # execution_logs: Mapped[List["ExecutionLog"]] = relationship(back_populates='creator')
 
     __table_args__ = (
-        db.CheckConstraint(
+        CheckConstraint(
             "role IN ('admin', 'operator', 'viewer')",
             name='valid_operator_role'
         ),
-        db.CheckConstraint(
+        CheckConstraint(
             "status IN ('active', 'inactive', 'suspended')",
             name='valid_operator_status'
         ),

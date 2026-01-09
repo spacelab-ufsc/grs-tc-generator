@@ -1,11 +1,11 @@
-from sqlalchemy import create_engine
+from flask_sqlalchemy.session import Session
+from sqlalchemy.engine.base import Engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy.ext.declarative import declarative_base
-from typing import Optional
-import os
+from sqlalchemy.orm import DeclarativeBase
 
-Base = declarative_base()
-
+#Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 class DatabaseConfig:
     """Base configuration class for database connections"""
@@ -16,11 +16,11 @@ class DatabaseConfig:
         self.session_factory = None
         self.kwargs = kwargs
 
-    def create_engine(self):
+    def create_engine(self) -> Engine:
         """Create and return a database engine"""
         raise NotImplementedError("Subclasses must implement this method")
 
-    def create_session(self):
+    def create_session(self) -> Session:
         """Create and return a new session"""
         if not self.engine:
             self.engine = self.create_engine()
