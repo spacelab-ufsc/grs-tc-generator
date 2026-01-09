@@ -62,6 +62,76 @@ This module is part of the **Control Server** in the Ground Station software sta
 
 16 directories, 22 files
 ```
+---
+### Class Diagram
+```mermaid
+classDiagram
+    class Operator {
+        +int id
+        +str username
+        +str email
+        +str full_name
+        +str password_hash
+        +str role
+        +datetime created_at
+        +datetime last_login
+        +str status
+        +verify_password(password: str) bool
+        +to_dict(include_sensitive: bool) dict
+    }
+
+    class Satellite {
+        +int id
+        +str name
+        +str code
+        +str description
+        +datetime created_at
+        +datetime updated_at
+        +str status
+        +to_dict() dict
+    }
+
+    class Telecommand {
+        +int id
+        +int satellite_id
+        +int operator_id
+        +str command_type
+        +JSONB parameters
+        +str status
+        +str status_message
+        +datetime created_at
+        +datetime sent_at
+        +datetime confirmed_at
+        +int priority
+        +JSONB metadata
+    }
+
+    class ExecutionLog {
+        +int id
+        +int telecommand_id
+        +str status
+        +str message
+        +JSONB details
+        +datetime created_at
+        +int created_by
+    }
+
+    Operator "1" -- "*" Telecommand : creates
+    Operator "1" -- "*" ExecutionLog : generates
+    Satellite "1" -- "*" Telecommand : receives
+    Telecommand "1" -- "*" ExecutionLog : has
+
+    note for Operator "Handles authentication and\nuser management"
+    note for Satellite "Represents space assets\nwith tracking info"
+    note for Telecommand "Commands sent to satellites\nwith priority and status"
+    note for ExecutionLog "Audit trail for all\ncommand executions"
+
+    style Operator fill:#f9f,stroke:#333,stroke-width:2px
+    style Satellite fill:#bbf,stroke:#333,stroke-width:2px
+    style Telecommand fill:#9f9,stroke:#333,stroke-width:2px
+    style ExecutionLog fill:#ff9,stroke:#333,stroke-width:2px
+```
+---
 ### How to Run (Local Development)
 
 To run the project outside Docker for debugging while keeping the database in a container:

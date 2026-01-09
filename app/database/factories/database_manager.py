@@ -3,6 +3,7 @@ import os
 from ..adapters.postgres_adapter import PostgresConfig
 
 from ..adapters.sqlite_adapter import SQLiteConfig
+from flask_sqlalchemy.session import Session
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -20,7 +21,7 @@ class DatabaseManager:
         return cls._instance
 
     @classmethod
-    def init_db(cls, db_type='sqlite', **kwargs):
+    def init_db(cls, db_type: str = 'sqlite', **kwargs) -> Session:
         """Initialize the database connection"""
         if db_type == 'postgresql':
             db_url = kwargs.pop('db_url', os.getenv('PG_DATABASE_URL'))
@@ -35,14 +36,14 @@ class DatabaseManager:
         return cls._db_config.create_session()
 
     @classmethod
-    def get_session(cls):
+    def get_session(cls) -> Session:
         """Get a new database session"""
         if cls._db_config is None:
             raise RuntimeError("Database not initialized. Call init_db() first.")
         return cls._db_config.create_session()
 
     @classmethod
-    def close_session(cls, session):
+    def close_session(cls, session: Session) -> None:
         """Close the database session"""
         if session:
             session.close()

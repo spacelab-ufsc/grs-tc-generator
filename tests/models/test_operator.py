@@ -16,7 +16,6 @@ from sqlalchemy.orm import Session
 
 from app.models.operator import Operator
 from app.database.factories.database_manager import DatabaseManager
-from app.database.database_config import Base
 
 
 class TestOperator:
@@ -59,35 +58,19 @@ class TestOperator:
     # Test 1:
     def test_database_connection(self):
         """Test database connection is working."""
-        try:
-            result = self.db.execute(text("SELECT 1"))
-            assert result.scalar() == 1, "Simple query test failed"
-            print("\n✓ Database connection test passed")
-
-        except Exception as e:
-            self.db.rollback()  # Ensure we don't leave test data in case of failure
-            pytest.fail(f" x Database test failed: {str(e)}")
-        finally:
-            # No need to commit or rollback here as it's handled by teardown_method
-            pass
+        result = self.db.execute(text("SELECT 1"))
+        assert result.scalar() == 1, "Simple query test failed"
+        print("\n✓ Database connection test passed")
 
     # Test 2:
     def test_operators_table(self):
         """Verify operators table exists and is accessible."""
-        try:
-            result = self.db.execute(text(
-                "SELECT EXISTS (SELECT FROM information_schema.tables "
-                "WHERE table_schema = 'public' AND table_name = 'operators')"
-            ))
-            assert result.scalar() is True, "Operators table does not exist"
-            print("\n✓ Operator Table ok")
-
-        except Exception as e:
-            self.db.rollback()  # Ensure we don't leave test data in case of failure
-            pytest.fail(f"Operator Table test failed: {str(e)}")
-        finally:
-            # No need to commit or rollback here as it's handled by teardown_method
-            pass
+        result = self.db.execute(text(
+            "SELECT EXISTS (SELECT FROM information_schema.tables "
+            "WHERE table_schema = 'public' AND table_name = 'operators')"
+        ))
+        assert result.scalar() is True, "Operators table does not exist"
+        print("\n✓ Operator Table ok")
 
     # Test 3:
     def test_create_operator(self):
@@ -119,7 +102,7 @@ class TestOperator:
         print("\n✓  New Operator created successfully")
 
     # Test 4:
-    def test_operators_retrieval_all(self):
+    def test_get_all_operators(self):
         """Test data retrieval (limited to 5)."""
         operators = self.db.query(Operator).limit(5).all()
         print("\n")
@@ -129,7 +112,7 @@ class TestOperator:
         print("\n✓  Operators retrieval all test passed")
 
     # Test 5:
-    def test_operator_retrieval_by_id(self):
+    def test_get_operator_by_id(self):
         """Test retrieving operator by ID."""
         operator = self.db.get(Operator, self.test_operator.id)
         assert operator is not None
@@ -137,7 +120,7 @@ class TestOperator:
         print("\n✓  Operator retrieval by ID test passed")
 
     # Test 6:
-    def test_operator_retrieval_username(self):
+    def test_get_operator_by_username(self):
         """Test retrieving operator by username."""
         operators = self.db.execute(
             select(Operator).where(Operator.username == self.test_operator.username)
@@ -149,7 +132,7 @@ class TestOperator:
         print("\n✓  Operator retrieval by username test passed")
 
     # Test 7:
-    def test_operators_update(self):
+    def test_update_operator(self):
         """Verify we can update operator information."""
         self.test_operator.full_name = "Updated Name"
         self.test_operator.role = "admin"
@@ -163,7 +146,7 @@ class TestOperator:
         print("\n✓   Operator Update test passed")
 
     # Test 8:
-    def test_operator_delete(self):
+    def test_delete_operator(self):
         """Verify we can delete an operator."""
         operator_id = self.test_operator.id
         self.db.delete(self.test_operator)

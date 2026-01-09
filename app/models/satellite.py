@@ -1,30 +1,43 @@
 # app/models/satellite.py
-from ..database import db
+from ..database.database_config import Base
 from datetime import datetime
+from typing import List
+from typing import Optional
+
+from sqlalchemy import ForeignKey
+from sqlalchemy import func
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy import Text
+from sqlalchemy import DateTime
+from sqlalchemy import CheckConstraint
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import relationship
 from sqlalchemy import event
 
 
-class Satellite(db.Model):
+class Satellite(Base):
     __tablename__ = 'satellites'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    code = db.Column(db.String(50), unique=True, nullable=False)
-    description = db.Column(db.Text)
-    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
-    updated_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), onupdate=db.func.now())
-    status = db.Column(
-        db.String(20),
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    code: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    description: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+    status: Mapped[str] = mapped_column(
+        String(20),
         default='active',
         nullable=False,
         server_default='active'
     )
 
-    # Relacionamentos
-    telecommands = db.relationship('Telecommand', back_populates='satellite')
+    # Relationships (temporarily disabled for testing)
+    #telecommands: Mapped[List["Telecommand"]] = relationship(back_populates='satellite')
 
     __table_args__ = (
-        db.CheckConstraint(
+        CheckConstraint(
             "status IN ('active', 'inactive', 'maintenance')",
             name='valid_satellite_status'
         ),
@@ -45,7 +58,7 @@ class Satellite(db.Model):
         return f'<Satellite {self.code}: {self.name}>'
 
 
-# Atualiza o timestamp quando o satélite for atualizado
+# Update the timestamp when the satellite is updated.
 @event.listens_for(Satellite, 'before_update')
 def update_updated_at(mapper, connection, target):
     target.updated_at = datetime.utcnow()
