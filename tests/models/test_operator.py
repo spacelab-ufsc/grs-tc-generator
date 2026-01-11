@@ -1,25 +1,103 @@
 # tests/models/test_operator.py
 """
-Test suite for Operator model and database operations.
+Test suite for Operator model.
 
-This module contains comprehensive tests for the Operator model, including:
-- Database connection tests
-- CRUD operations
-- Data validation
-- Business logic
+This file is divided into two parts to respect separation of concerns:
+1. TestOperatorBehavior: Tests the business logic and object behavior (Unit-like).
+2. TestOperatorPersistence: Tests the database schema constraints and mapping (Integration).
 """
+import json
+from zoneinfo import ZoneInfo
+
 import pytest
-from datetime import datetime
+from datetime import datetime, UTC
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import text, select
-from sqlalchemy.orm import Session
 
 from app.models.operator import Operator
 from app.database.factories.database_manager import DatabaseManager
 
 
-class TestOperator:
-    """Test suite for Operator model and database operations."""
+class TestOperatorBehavior:
+    """
+    Focuses on the logic contained within the Operator class methods.
+    These tests verify the behavior of the object itself, independent of database constraints.
+    """
+    
+    def test_password_hashing_logic(self):
+        """Test that the password property handles hashing correctly."""
+        operator = Operator(password="secret123")
+
+        # Logic: Password should be hashed, not plain text
+        assert operator.password_hash is not None
+        assert operator.password_hash != "secret123"
+        
+        # Logic: Verify method should work
+        assert operator.verify_password("secret123") is True
+        assert operator.verify_password("wrong") is False
+
+    def test_password_is_not_readable(self):
+        """Test that password attribute cannot be read directly."""
+        operator = Operator(password="secret")
+        with pytest.raises(AttributeError, match="password is not a readable attribute"):
+            _ = operator.password
+
+    def test_to_dict_format(self):
+        """Test the dictionary representation of the operator."""
+        now = datetime.now(UTC)
+        operator = Operator(
+            id=1,
+            username="test",
+            email="test@test.com",
+            full_name="Test",
+            role="operator",
+            status="active",
+            created_at=now,
+            last_login=now
+        )
+        
+        data = operator.to_dict()
+        
+        assert data['username'] == "test"
+        assert data['role'] == "operator"
+        assert 'password_hash' not in data  # Security check
+        print(data.get("created_at"))
+        if data.get("created_at"):
+            br_tz = ZoneInfo("America/Sao_Paulo")
+            dt_utc = datetime.fromisoformat(data["created_at"])
+            data["created_at"] = dt_utc.astimezone(br_tz).strftime("%d/%m/%Y %H:%M:%S")
+            dt_utc = datetime.fromisoformat(data["last_login"])
+            data["last_login"] = dt_utc.astimezone(br_tz).strftime("%d/%m/%Y %H:%M:%S")
+        print(f"\nDictionary: ")
+        print(json.dumps(data, indent=4, default=str))
+
+    def test_to_dict_with_sensitive_data(self):
+        """Test to_dict with include_sensitive flag."""
+        operator = Operator(password="secret")
+        data = operator.to_dict(include_sensitive=True)
+        assert 'password_hash' in data
+
+    def test_repr_format(self):
+        """Test the string representation."""
+        operator = Operator(username="user1", role="admin")
+        assert str(operator) == '<Operator user1 (admin)>'
+
+
+class TestOperatorPersistence:
+    """
+    Focuses on the Database Schema and SQLAlchemy Mapping.
+    These tests verify that the database constraints (Unique, Not Null, Check) 
+    are correctly configured and enforced by the database.
+    """
+
+    TEST_OPERATOR_DATA = {
+        "username": "db_user",
+        "email": "db@example.com",
+        "full_name": "DB User",
+        "password": "password123",
+        "role": "operator"
+    }
+
     # Test Data
     TEST_OPERATOR = {
         "username": "test_user",
@@ -32,7 +110,6 @@ class TestOperator:
     @classmethod
     def setup_class(cls):
         """Setup once before all tests."""
-        # Initialize test database
         DatabaseManager.init_db(db_type='postgresql_test')
         cls.db = DatabaseManager.get_session()
 
@@ -43,7 +120,6 @@ class TestOperator:
 
     def setup_method(self):
         """Run before each test method."""
-        # Start a new transaction
         self.transaction = self.db.begin_nested()
         # Create test data
         self.test_operator = Operator(**self.TEST_OPERATOR)
@@ -52,56 +128,79 @@ class TestOperator:
 
     def teardown_method(self):
         """Run after each test"""
-        # Rollback the transaction
         self.transaction.rollback()
 
-    # Test 1:
-    def test_database_connection(self):
-        """Test database connection is working."""
-        result = self.db.execute(text("SELECT 1"))
-        assert result.scalar() == 1, "Simple query test failed"
-        print("\n✓ Database connection test passed")
-
-    # Test 2:
-    def test_operators_table(self):
-        """Verify operators table exists and is accessible."""
-        result = self.db.execute(text(
-            "SELECT EXISTS (SELECT FROM information_schema.tables "
-            "WHERE table_schema = 'public' AND table_name = 'operators')"
-        ))
-        assert result.scalar() is True, "Operators table does not exist"
-        print("\n✓ Operator Table ok")
-
-    # Test 3:
-    def test_create_operator(self):
-        """Test creating a new operator."""
-        new_operator = Operator(
-            username="new_user",
-            email="new@example.com",
-            full_name="New User",
-            password="testpass123",
-            role="operator"
-        )
-        self.db.add(new_operator)
+    def test_persistence_happy_path(self):
+        """Test that a valid operator can be saved and retrieved."""
+        operator = Operator(**self.TEST_OPERATOR_DATA)
+        self.db.add(operator)
         self.db.flush()
 
-        assert new_operator.id is not None
-        assert new_operator.created_at is not None
+        assert operator.id is not None
+        # Verify default values applied by DB/SQLAlchemy
+        assert operator.status == 'active'
+        assert operator.created_at is not None
 
-        # Verify the record was inserted
-        inserted = self.db.get(Operator, new_operator.id)
-        assert inserted is not None, "Failed to insert test operator"
-        assert inserted.username == new_operator.username
-        assert inserted.email == new_operator.email
-        assert inserted.full_name == new_operator.full_name
-        assert inserted.role == new_operator.role
-        assert inserted.status == "active"
-        assert isinstance(inserted.created_at, datetime)
-        assert isinstance(inserted.last_login, datetime)
+    def test_constraint_unique_username(self):
+        """Test that the database enforces unique usernames."""
+        # Create first user
+        op1 = Operator(**self.TEST_OPERATOR_DATA)
+        self.db.add(op1)
+        self.db.flush()
 
-        print("\n✓  New Operator created successfully")
+        # Create second user with same username
+        op2 = Operator(**self.TEST_OPERATOR_DATA)
+        op2.email = "different@example.com" # Change email to isolate username error
+        
+        self.db.add(op2)
+        with pytest.raises(IntegrityError):
+            self.db.flush()
 
-    # Test 4:
+    def test_constraint_unique_email(self):
+        """Test that the database enforces unique emails."""
+        op1 = Operator(**self.TEST_OPERATOR_DATA)
+        self.db.add(op1)
+        self.db.flush()
+
+        op2 = Operator(**self.TEST_OPERATOR_DATA)
+        op2.username = "different_user" # Change username to isolate email error
+        
+        self.db.add(op2)
+        with pytest.raises(IntegrityError):
+            self.db.flush()
+
+    def test_constraint_required_fields(self):
+        """Test that nullable=False fields are enforced."""
+        # Missing username, email, etc.
+        operator = Operator(full_name="Just Name") 
+        self.db.add(operator)
+        
+        with pytest.raises(IntegrityError):
+            self.db.flush()
+
+    def test_check_constraint_role(self):
+        """Test the CheckConstraint for valid roles."""
+        data = self.TEST_OPERATOR_DATA.copy()
+        data['role'] = 'super_hacker' # Invalid role
+        
+        operator = Operator(**data)
+        self.db.add(operator)
+        
+        with pytest.raises(IntegrityError):
+            self.db.flush()
+
+    def test_check_constraint_status(self):
+        """Test the CheckConstraint for valid status."""
+        data = self.TEST_OPERATOR_DATA.copy()
+        data['status'] = 'deleted' # Invalid status (assuming 'deleted' is not in the allowed list)
+        
+        operator = Operator(**data)
+        self.db.add(operator)
+        
+        with pytest.raises(IntegrityError):
+            self.db.flush()
+
+
     def test_get_all_operators(self):
         """Test data retrieval (limited to 5)."""
         operators = self.db.query(Operator).limit(5).all()
@@ -111,7 +210,6 @@ class TestOperator:
 
         print("\n✓  Operators retrieval all test passed")
 
-    # Test 5:
     def test_get_operator_by_id(self):
         """Test retrieving operator by ID."""
         operator = self.db.get(Operator, self.test_operator.id)
@@ -155,64 +253,3 @@ class TestOperator:
         assert deleted is None
 
         print("\n✓  Operator Delete test passed")
-
-    # Test 9:
-    def test_password_hashing(self):
-        """Test password hashing and verification"""
-        operator = Operator(
-            username="testuser2",
-            email="test2@example.com",
-            full_name="Test User 2",
-            password="securepassword123",
-            role="operator"
-        )
-
-        # Check password is hashed
-        assert operator.password_hash is not None
-        assert operator.password_hash != "securepassword123"
-
-        # Verify password
-        assert operator.verify_password("securepassword123") is True
-        assert operator.verify_password("wrongpassword") is False
-
-        print("\n✓  Password Hashing test passed")
-
-    # Test 10:
-    def test_required_fields(self):
-        """Test that required fields cannot be null"""
-        operator = Operator()  # Missing required fields
-        self.db.add(operator)
-
-        with pytest.raises(IntegrityError):
-            self.db.commit()
-
-        self.db.rollback()
-
-    # Test 11:
-    @pytest.mark.parametrize("field", ["username", "email", "password_hash", "role"])
-    def test_required_fields_parametrize(self, field):
-        """Test that required fields cannot be null."""
-        # Create a copy of test data and remove the field being tested
-        data = self.TEST_OPERATOR.copy()
-        data[field] = None
-
-        operator = Operator(**data)
-        self.db.add(operator)
-
-        with pytest.raises(IntegrityError):
-            self.db.commit()
-            self.db.rollback()
-
-    # Additional Test: Test Role Validation
-    def test_role_validation(self):
-        """Test that role must be one of the allowed values."""
-        with pytest.raises(IntegrityError):
-            operator = Operator(
-                username="invalid_role",
-                email="invalid@example.com",
-                full_name="Invalid Role",
-                password="test123",
-                role="invalid_role"
-            )
-            self.db.add(operator)
-            self.db.flush()

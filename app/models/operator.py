@@ -1,18 +1,18 @@
 # app/models/operator.py
-from ..database.database_config import Base
 from datetime import datetime
-from typing import List
-from typing import Optional
+from typing import List, Dict, Optional
+from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey
-from sqlalchemy import func
-from sqlalchemy import Integer
-from sqlalchemy import String
-from sqlalchemy import CheckConstraint
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import relationship
+from sqlalchemy import CheckConstraint, String, Text, Integer, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
+
+from ..database.database_config import Base
+
+# Avoid circular imports
+if TYPE_CHECKING:
+    from .telecommand import Telecommand
+    from .execution_log import ExecutionLog
 
 
 class Operator(Base):
@@ -38,9 +38,16 @@ class Operator(Base):
         server_default='active'
     )
 
-    # Relationships (temporarily disabled for testing)
-    # telecommands: Mapped[List["Telecommand"]] = relationship(back_populates='operator')
-    # execution_logs: Mapped[List["ExecutionLog"]] = relationship(back_populates='creator')
+    # Relationships
+    telecommands: Mapped[List["Telecommand"]] = relationship(
+        "Telecommand",
+        back_populates="operator",
+        cascade="all, delete-orphan"
+    )
+    execution_logs: Mapped[List["ExecutionLog"]] = relationship(
+        "ExecutionLog",
+        back_populates="creator"
+    )
 
     __table_args__ = (
         CheckConstraint(
