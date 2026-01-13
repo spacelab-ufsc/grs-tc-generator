@@ -1,9 +1,9 @@
 # Satellite TC Generator Web
 
-- flask
-- SQLalchemy
-- Postgre
-- SQLite
+![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
+![Flask](https://img.shields.io/badge/Flask-3.0+-green.svg)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0+-red.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue.svg)
 
 [English Version](#english-version) | [Versão em Português](#versão-em-português)
 
@@ -11,57 +11,43 @@
 
 ## English Version
 
-This module is part of the **Control Server** in the Ground Station software stack. It provides a web interface for operators to generate and schedule satellite telecommands (TC).
+This module is part of the **Control Server** in the Ground Station software stack. It provides a modern web interface for operators to generate, schedule, and manage satellite telecommands (TC).
 
 ### 🚀 Key Features
-- **Clean Architecture**: Separation of concerns using Repository and Service patterns.
+- **Clean Architecture**: Separation of concerns using Models, Routes, and Templates.
+- **Robust Data Modeling**: SQLAlchemy 2.0 ORM with comprehensive constraints and relationships.
 - **Database Factory**: Modular support for PostgreSQL (Production/Docker) and SQLite (Local testing).
-- **Scalability**: Built with Flask's Application Factory pattern.
-- **Microservices Ready**: Optimized for Docker containerization.
+- **Modern UI**: Responsive Dashboard built with Bootstrap 5.
+- **Testing**: Comprehensive test suite with `pytest` covering both Logic and Persistence layers.
 
 ### 📂 Project Structure
 ```plaintext
 /tc_generator_web
 ├── app
-│        ├── app.py
-│        ├── database
-│        │        ├── __pycache__
-│        │        │        └── database_config.cpython-311.pyc
-│        │        ├── adapters
-│        │        │        ├── __pycache__
-│        │        │        │        ├── postgres_adapter.cpython-311.pyc
-│        │        │        │        └── sqlite_adapter.cpython-311.pyc
-│        │        │        ├── postgres_adapter.py
-│        │        │        └── sqlite_adapter.py
-│        │        ├── connector.py
-│        │        ├── database_config.py
-│        │        └── factories
-│        │            ├── __pycache__
-│        │            │        └── database_manager.cpython-311.pyc
-│        │            └── database_manager.py
-│        ├── models
-│        │        ├── __init__.py
-│        │        ├── execution_log.py
-│        │        ├── operator.py
-│        │        ├── satellite.py
-│        │        └── telecommand.py
-│        ├── routes
-│        └── templates
+│   ├── __init__.py          # Application Factory
+│   ├── database
+│   │   ├── adapters         # DB Adapters (Postgres/SQLite)
+│   │   ├── factories        # DatabaseManager Factory
+│   │   └── database_config.py
+│   ├── models               # SQLAlchemy Models
+│   │   ├── execution_log.py
+│   │   ├── operator.py
+│   │   ├── satellite.py
+│   │   └── telecommand.py
+│   ├── routes               # Web Controllers
+│   │   └── web_routes.py
+│   └── templates            # HTML Views (Jinja2)
+│       ├── base.html
+│       └── index.html
+├── tests                    # Test Suite
+│   └── models               # Model Tests (Behavior & Persistence)
+├── run.py                   # Entry Point
 ├── readme.md
 ├── requirements.txt
-├── resources
-│        └── database
-│            ├── README.md
-│            ├── schema.sql
-│            └── script_init_db.py
-├── static
-└── tests
-    ├── __pycache__
-    │        └── db_test.cpython-311.pyc
-    └── db_test.py
-
-16 directories, 22 files
+└── resources
+    └── database             # SQL Scripts
 ```
+
 ---
 ### Class Diagram
 ```mermaid
@@ -71,49 +57,35 @@ classDiagram
         +str username
         +str email
         +str full_name
-        +str password_hash
         +str role
-        +datetime created_at
-        +datetime last_login
         +str status
-        +verify_password(password: str) bool
-        +to_dict(include_sensitive: bool) dict
+        +verify_password()
     }
 
     class Satellite {
         +int id
         +str name
         +str code
-        +str description
-        +datetime created_at
-        +datetime updated_at
         +str status
-        +to_dict() dict
+        +datetime updated_at
     }
 
     class Telecommand {
         +int id
-        +int satellite_id
-        +int operator_id
         +str command_type
-        +JSONB parameters
         +str status
-        +str status_message
+        +int priority
         +datetime created_at
         +datetime sent_at
         +datetime confirmed_at
-        +int priority
-        +JSONB metadata
+        +update_status()
     }
 
     class ExecutionLog {
         +int id
-        +int telecommand_id
         +str status
         +str message
-        +JSONB details
         +datetime created_at
-        +int created_by
     }
 
     Operator "1" -- "*" Telecommand : creates
@@ -125,99 +97,104 @@ classDiagram
     note for Satellite "Represents space assets\nwith tracking info"
     note for Telecommand "Commands sent to satellites\nwith priority and status"
     note for ExecutionLog "Audit trail for all\ncommand executions"
-
-    style Operator fill:#f9f,stroke:#333,stroke-width:2px
-    style Satellite fill:#bbf,stroke:#333,stroke-width:2px
-    style Telecommand fill:#9f9,stroke:#333,stroke-width:2px
-    style ExecutionLog fill:#ff9,stroke:#333,stroke-width:2px
 ```
+
 ---
-### How to Run (Local Development)
+### 🛠️ How to Run (Local Development)
 
-To run the project outside Docker for debugging while keeping the database in a container:
+To run the project locally for development and debugging:
 
-1. Prerequisites: Python 3.10+, Conda, and Docker.
+#### 1. Prerequisites
+- Python 3.10+ (Conda recommended)
+- Docker (for the PostgreSQL database)
 
-2. Setup Infrastructure:
+#### 2. Setup Database Infrastructure
+Start the PostgreSQL container using Docker Compose:
+```bash
+docker-compose up -d postgres
+```
+*Ensure the database schema is applied (tables created).*
 
-    ```Bash
-    # Start only the database container
-    docker-compose up -d postgres
-    ```
-3. Configure Environment Variables:
+#### 3. Configure Environment
+Create a `.env` file in the root directory or export the variables:
+```bash
+# Connection String: dialect+driver://username:password@host:port/database
+export PG_DATABASE_URL="postgresql+psycopg2://username:password@localhost:5432/tc_generator"
+export PG_DATABASE_URL_TEST="postgresql+psycopg2://username:password@localhost:5432/tc_generator_test"
+```
 
-    ```Bash
-    # dialect+driver://username:password@host:port/database
-    PG_DATABASE_URL=postgresql+psycopg2://username:password@localhost:5432/tc_generator
-    # db test
-    PG_DATABASE_URL_TEST=postgresql+psycopg2://username:password@localhost:5432/tc_generator_test
-    # SQLite (used only if DB_TYPE=sqlite)
-    SQLITE_DATABASE_URL=sqlite:///instance/tc_generator.db
-    ```
-4. Execute with Flask Server:
+#### 4. Install Dependencies
+```bash
+conda create -n tc_generator_web python=3.11
+conda activate tc_generator_web
+pip install -r requirements.txt
+```
 
-    ```Bash
-    conda activate tc_generator_web
-    flask run
-    ```
+#### 5. Run the Application
+Execute the entry point script:
+```bash
+python run.py
+```
+Access the dashboard at: **http://localhost:5000**
+
+#### 6. Run Tests
+Execute the test suite to ensure everything is working:
+```bash
+pytest tests/
+```
+
 ---
+
 ## Versão em Português
-Este módulo é parte do **Control Server** na estrutura de software da Estação Terrestre. Ele fornece uma interface web para que operadores possam gerar e agendar telecomandos (TC) de satélites.
 
-###  Principais Funcionalidades
+Este módulo é parte do **Control Server** na estrutura de software da Estação Terrestre. Ele fornece uma interface web moderna para que operadores possam gerar, agendar e gerenciar telecomandos (TC) de satélites.
 
-- **Arquitetura Limpa**: Separação de responsabilidades usando os padrões Repository e Service.
-
+### 🚀 Principais Funcionalidades
+- **Arquitetura Limpa**: Separação de responsabilidades usando Models, Routes e Templates.
+- **Modelagem Robusta**: ORM SQLAlchemy 2.0 com restrições e relacionamentos completos.
 - **Database Factory**: Suporte modular para PostgreSQL (Produção/Docker) e SQLite (Testes locais).
+- **Interface Moderna**: Dashboard responsivo construído com Bootstrap 5.
+- **Testes**: Suíte de testes abrangente com `pytest` cobrindo camadas de Lógica e Persistência.
 
-- **Escalabilidade**: Construído utilizando o padrão Application Factory do Flask.
+### 🛠️ Como Executar (Desenvolvimento Local)
 
-- **Pronto para Microserviços**: Otimizado para conteinerização com Docker.
+Para executar o projeto localmente para desenvolvimento e debug:
 
-### Estrutura do Projeto
+#### 1. Pré-requisitos
+- Python 3.10+ (Recomendado usar Conda)
+- Docker (para o banco de dados PostgreSQL)
 
-- `manage.py`: Ponto de entrada da aplicação.
+#### 2. Subir Infraestrutura de Banco de Dados
+Inicie o container PostgreSQL usando Docker Compose:
+```bash
+docker-compose up -d postgres
+```
+*Certifique-se de que o esquema do banco de dados foi aplicado (tabelas criadas).*
 
-- `app/`: Pacote principal contendo a lógica dividida em camadas.
+#### 3. Configurar Ambiente
+Crie um arquivo `.env` na raiz ou exporte as variáveis:
+```bash
+# String de Conexão: dialect+driver://username:password@host:port/database
+export PG_DATABASE_URL="postgresql+psycopg2://username:password@localhost:5432/tc_generator"
+export PG_DATABASE_URL_TEST="postgresql+psycopg2://username:password@localhost:5432/tc_generator_test"
+```
 
-- `app/database/`: Implementação da Factory de banco de dados e adaptadores.
+#### 4. Instalar Dependências
+```bash
+conda create -n tc_generator_web python=3.11
+conda activate tc_generator_web
+pip install -r requirements.txt
+```
 
-- `Dockerfile`: Instruções para criação da imagem de produção.
+#### 5. Executar a Aplicação
+Execute o script de entrada:
+```bash
+python run.py
+```
+Acesse o dashboard em: **http://localhost:5000**
 
-###  Como Executar (Desenvolvimento Local)
-
-Para executar o projeto fora do Docker para fins de debug, mantendo apenas o banco de dados no container:
-
-1. Pré-requisitos: Python 3.10+, Conda e Docker.
-
-2. Subir Infraestrutura:
-    
-    ```Bash
-    # \d - display (Inicia apenas o container do banco de dados)
-    docker-compose up -d postgres
-    ```
-
-3. Configurar Variáveis de Ambiente:
-    
-    ```Bash
-    # dialect+driver://username:password@host:port/database
-    PG_DATABASE_URL=postgresql+psycopg2://username:password@localhost:5432/tc_generator
-    # db test
-    PG_DATABASE_URL_TEST=postgresql+psycopg2://username:password@localhost:5432/tc_generator_test
-    # SQLite (usado apenas se DB_TYPE=sqlite)
-    SQLITE_DATABASE_URL=sqlite:///instance/tc_generator.db
-    ```
-3. Executar via Flask:
-    
-    ```Bash
-    conda activate tc_generator_web
-    flask run
-    ```
-4. Observações / Notes
-
-- No ambiente de produção (Docker), o servidor utilizado é o Gunicorn. / In production (Docker), the server used is Gunicorn.
-
-- O banco de dados PostgreSQL deve estar com a tabela scheduled_telecommands devidamente criada. / PostgreSQL must have the scheduled_telecommands table correctly created.
-
-
----
+#### 6. Executar Testes
+Execute a suíte de testes para garantir que tudo está funcionando:
+```bash
+pytest tests/
+```

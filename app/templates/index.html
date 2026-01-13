@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="fw-light">Mission Control</h2>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#searchModal">
+            <i class="bi bi-search me-1"></i> Search / Manage
+        </button>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createModal">
+            <i class="bi bi-plus-lg me-1"></i> New Telecommand
+        </button>
+    </div>
+</div>
+
+<!-- Dashboard Cards -->
+<div class="row g-4">
+    <!-- Card 1: Pending & Queued -->
+    <div class="col-md-4">
+        <div class="card h-100 border-start border-4 border-warning">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-warning"><i class="bi bi-hourglass-split me-2"></i>Pending</h5>
+                <span class="badge bg-warning text-dark">{{ pending_tcs|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for tc in pending_tcs %}
+                    <div class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ tc.command_type }}</h6>
+                            <small class="text-muted">#{{ tc.id }}</small>
+                        </div>
+                        <p class="mb-1 small text-muted">
+                            <i class="bi bi-hdd-network me-1"></i> {{ tc.satellite.code }}
+                        </p>
+                        <small class="text-secondary">Priority: {{ tc.priority }}</small>
+                    </div>
+                    {% else %}
+                    <div class="p-3 text-center text-muted">No pending commands</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 2: Sent (In Flight) -->
+    <div class="col-md-4">
+        <div class="card h-100 border-start border-4 border-primary">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-primary"><i class="bi bi-send me-2"></i>Sent</h5>
+                <span class="badge bg-primary">{{ sent_tcs|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for tc in sent_tcs %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ tc.command_type }}</h6>
+                            <small class="text-primary">#{{ tc.id }}</small>
+                        </div>
+                        <p class="mb-1 small text-muted">
+                            Sent: {{ tc.sent_at.strftime('%H:%M:%S') if tc.sent_at else '--:--' }}
+                        </p>
+                        <span class="badge bg-light text-dark border">Awaiting Confirmation</span>
+                    </div>
+                    {% else %}
+                    <div class="p-3 text-center text-muted">No active transmissions</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 3: History (Confirmed/Failed) -->
+    <div class="col-md-4">
+        <div class="card h-100 border-start border-4 border-secondary">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-secondary"><i class="bi bi-archive me-2"></i>History</h5>
+                <span class="badge bg-secondary">{{ history_tcs|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for tc in history_tcs %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ tc.command_type }}</h6>
+                            {% if tc.status == 'confirmed' %}
+                                <span class="badge bg-success"><i class="bi bi-check"></i></span>
+                            {% else %}
+                                <span class="badge bg-danger"><i class="bi bi-x"></i></span>
+                            {% endif %}
+                        </div>
+                        <small class="text-muted">
+                            {{ tc.updated_at.strftime('%Y-%m-%d %H:%M') if tc.updated_at else '' }}
+                        </small>
+                    </div>
+                    {% else %}
+                    <div class="p-3 text-center text-muted">No history available</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Create Telecommand -->
+<div class="modal fade" id="createModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('web.create_telecommand') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title">New Telecommand</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Satellite</label>
+                        <select name="satellite_id" class="form-select" required>
+                            {% for sat in satellites %}
+                            <option value="{{ sat.id }}">{{ sat.name }} ({{ sat.code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Command Type</label>
+                        <input type="text" name="command_type" class="form-control" placeholder="e.g. PING, REBOOT" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Priority (1-10)</label>
+                        <input type="number" name="priority" class="form-control" value="5" min="1" max="10" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Operator</label>
+                        <select name="operator_id" class="form-select" required>
+                            {% for op in operators %}
+                            <option value="{{ op.id }}">{{ op.full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Create Command</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Search & Manage -->
+<div class="modal fade" id="searchModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Manage Telecommands</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Filter by ID or Command Type...">
+                </div>
+                
+                <div class="table-responsive" style="max-height: 400px;">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Command</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="searchTableBody">
+                            <!-- Combined list for search -->
+                            {% for tc in pending_tcs + sent_tcs + history_tcs %}
+                            <tr class="search-item">
+                                <td>{{ tc.id }}</td>
+                                <td>{{ tc.command_type }}</td>
+                                <td><span class="badge bg-secondary">{{ tc.status }}</span></td>
+                                <td>
+                                    <form action="{{ url_for('web.delete_telecommand', tc_id=tc.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Simple client-side search filter
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll('.search-item');
+        
+        rows.forEach(row => {
+            let text = row.textContent.toLowerCase();
+            row.style.display = text.includes(filter) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}

@@ -2,7 +2,7 @@
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List, TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, String, Text, JSON
+from sqlalchemy import ForeignKey, String, Text, JSON, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.database_config import Base
@@ -20,7 +20,8 @@ class ExecutionLog(Base):
     message: Mapped[Optional[str]] = mapped_column(Text)
     details: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(
-        default=datetime.now(timezone.utc),
+        # Use server_default for DB-side timestamp or a callable for Python-side
+        server_default=func.now(),
         nullable=False
     )
 
@@ -87,4 +88,3 @@ class ExecutionLog(Base):
 
     def __repr__(self) -> str:
         return f'<ExecutionLog {self.id}: {self.status} (TC: {self.telecommand_id})>'
-

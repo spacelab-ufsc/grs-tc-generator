@@ -9,6 +9,7 @@ This file is divided into two parts to respect separation of concerns:
 import pytest
 from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import text
 
 from app.models.telecommand import Telecommand
 from app.models.satellite import Satellite
@@ -81,14 +82,20 @@ class TestTelecommandPersistence:
 
     @classmethod
     def setup_class(cls):
+        # Ensure we are using a fresh database state
         DatabaseManager.init_db(db_type='postgresql_test')
         cls.db = DatabaseManager.get_session()
+        
+        # If using SQLite, we must enable foreign keys manually for each connection
+        if 'sqlite' in str(cls.db.bind.url):
+            cls.db.execute(text("PRAGMA foreign_keys=ON"))
 
     @classmethod
     def teardown_class(cls):
         cls.db.close()
 
     def setup_method(self):
+        # Start a nested transaction (SAVEPOINT)
         self.transaction = self.db.begin_nested()
         
         # Create dependencies (Satellite and Operator)
@@ -117,7 +124,10 @@ class TestTelecommandPersistence:
         }
 
     def teardown_method(self):
+        # Rollback the nested transaction
         self.transaction.rollback()
+        # Expunge all objects to ensure clean state for next test
+        self.db.expire_all()
 
     def test_persistence_happy_path(self):
         """Test that a valid telecommand can be saved and retrieved."""
@@ -176,14 +186,26 @@ class TestTelecommandPersistence:
         tc_low = Telecommand(**self.TEST_TC_DATA)
         tc_low.priority = 0
         self.db.add(tc_low)
+        
         with pytest.raises(IntegrityError):
             self.db.flush()
+        
+        # IMPORTANT: Rollback the failed flush to clean the session
         self.db.rollback()
+        
+        # Start a new nested transaction for the next part of the test
+        self.transaction = self.db.begin_nested()
+        
+        # Re-add dependencies because rollback removed them from session
+        self.db.add(self.satellite)
+        self.db.add(self.operator)
+        self.db.flush()
 
         # Test upper bound
         tc_high = Telecommand(**self.TEST_TC_DATA)
         tc_high.priority = 11
         self.db.add(tc_high)
+        
         with pytest.raises(IntegrityError):
             self.db.flush()
 
@@ -197,31 +219,49 @@ class TestTelecommandPersistence:
         # Delete the satellite
         self.db.delete(self.satellite)
         self.db.flush()
+        
+        # Force session to clear cache and reload from DB
+        self.db.expire_all()
 
         # Verify telecommand is gone
         deleted_tc = self.db.get(Telecommand, tc_id)
         assert deleted_tc is None
 
-    def test_set_null_delete_operator(self):
-        """Test that deleting an operator sets operator_id to NULL (SET NULL)."""
-        # Note: In the model definition provided earlier, ondelete='SET NULL' was used for operator
-        # However, nullable=False was also set. This is a contradiction in the model definition.
-        # Let's test what happens. If nullable=False, this should fail or we need to fix the model.
-        
-        # Checking model definition from memory/previous reads:
-        # operator_id: Mapped[int] = mapped_column(..., ForeignKey(..., ondelete='SET NULL'), nullable=False)
-        # This configuration is actually invalid/contradictory in SQL. 
-        # If ondelete='SET NULL', the column MUST be nullable.
-        
-        # Let's try to delete operator and see if it fails (due to nullable=False) 
-        # or if we should fix the model.
-        
+    def test_set_default_admin_delete_operator(self):
+        """
+        Test that deleting an operator reassigns telecommands to Admin (ID 1).
+        This tests ON DELETE SET DEFAULT.
+        """
+        # 1. Ensure Admin (ID 1) exists
+        admin = self.db.get(Operator, 1)
+        if not admin:
+            admin = Operator(
+                id=1,
+                username="admin",
+                email="admin@spacelab.com",
+                full_name="System Admin",
+                password="admin",
+                role="admin"
+            )
+            self.db.merge(admin)
+            self.db.flush()
+
+        # 2. Create a telecommand with a regular operator
         tc = Telecommand(**self.TEST_TC_DATA)
         self.db.add(tc)
         self.db.flush()
         
-        self.db.delete(self.operator)
+        tc_id = tc.id
         
-        # Expecting IntegrityError because column is not nullable
-        with pytest.raises(IntegrityError):
-            self.db.flush()
+        # 3. Delete the regular operator
+        self.db.delete(self.operator)
+        self.db.flush()
+        
+        # 4. Verify telecommand was NOT deleted, but reassigned
+        self.db.expire_all() # Force reload from DB
+        updated_tc = self.db.get(Telecommand, tc_id)
+        
+        # NOTE: If this fails with None, it means the DB did CASCADE delete instead of SET DEFAULT
+        # or SET DEFAULT is not supported/enabled.
+        assert updated_tc is not None, "Telecommand was deleted instead of reassigned"
+        assert updated_tc.operator_id == 1, f"Operator ID should be 1, got {updated_tc.operator_id}"

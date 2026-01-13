@@ -21,17 +21,17 @@ class DatabaseManager:
         return cls._instance
 
     @classmethod
-    def init_db(cls, db_type: str = 'sqlite', **kwargs) -> Session:
+    def init_db(cls, db_type: str = 'postgresql', **kwargs) -> Session:
         """Initialize the database connection"""
-        if db_type == 'postgresql':
-            db_url = kwargs.pop('db_url', os.getenv('PG_DATABASE_URL'))
-            cls._db_config = PostgresConfig(db_url=db_url, **kwargs)
+        if db_type == 'sqlite':
+            db_url = kwargs.pop('db_url', os.getenv('SQLITE_DATABASE_URL', 'sqlite:///app.db'))
+            cls._db_config = SQLiteConfig(db_url=db_url, **kwargs)
         elif db_type == 'postgresql_test':
             db_url = kwargs.pop('db_url', os.getenv('PG_DATABASE_URL_TEST'))
             cls._db_config = PostgresConfig(db_url=db_url, **kwargs)
-        else:  # Default to SQLite
-            db_url = kwargs.pop('db_url', os.getenv('SQLITE_DATABASE_URL', 'sqlite:///app.db'))
-            cls._db_config = SQLiteConfig(db_url=db_url, **kwargs)
+        else:  # Default to PostgreSQL
+            db_url = kwargs.pop('db_url', os.getenv('PG_DATABASE_URL'))
+            cls._db_config = PostgresConfig(db_url=db_url, **kwargs)
 
         return cls._db_config.create_session()
 

@@ -29,7 +29,7 @@ CREATE TABLE operators (
 CREATE TABLE telecommands (
     id SERIAL PRIMARY KEY,
     satellite_id INTEGER NOT NULL REFERENCES satellites(id) ON DELETE CASCADE,
-    operator_id INTEGER NOT NULL REFERENCES operators(id) ON DELETE SET NULL,
+    operator_id INTEGER NOT NULL DEFAULT 1 REFERENCES operators(id) ON DELETE SET DEFAULT,
     command_type VARCHAR(50) NOT NULL,
     parameters JSONB,
     status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'queued', 'sent', 'confirmed', 'failed')),
