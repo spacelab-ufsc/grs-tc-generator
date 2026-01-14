@@ -4,6 +4,7 @@
 ![Flask](https://img.shields.io/badge/Flask-3.0+-green.svg)
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0+-red.svg)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue.svg)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)
 
 [English Version](#english-version) | [Versão em Português](#versão-em-português)
 
@@ -17,38 +18,26 @@ This module is part of the **Control Server** in the Ground Station software sta
 - **Clean Architecture**: Separation of concerns using Models, Routes, and Templates.
 - **Robust Data Modeling**: SQLAlchemy 2.0 ORM with comprehensive constraints and relationships.
 - **Database Factory**: Modular support for PostgreSQL (Production/Docker) and SQLite (Local testing).
-- **Modern UI**: Responsive Dashboard built with Bootstrap 5.
-- **Testing**: Comprehensive test suite with `pytest` covering both Logic and Persistence layers.
+- **Modern UI**: Responsive "Mission Control" Dashboard built with Bootstrap 5.
+- **Dockerized**: Fully automated setup with Docker Compose.
 
 ### 📂 Project Structure
-
 ```plaintext
 /tc_generator_web
 ├── app
 │   ├── __init__.py          # Application Factory
-│   ├── database
-│   │   ├── adapters         # DB Adapters (Postgres/SQLite)
-│   │   ├── factories        # DatabaseManager Factory
-│   │   └── database_config.py
+│   ├── database             # DB Adapters & Factory
 │   ├── models               # SQLAlchemy Models
-│   │   ├── execution_log.py
-│   │   ├── operator.py
-│   │   ├── satellite.py
-│   │   └── telecommand.py
 │   ├── routes               # Web Controllers
-│   │   └── web_routes.py
 │   └── templates            # HTML Views (Jinja2)
-│       ├── base.html
-│       └── index.html
 ├── tests                    # Test Suite
-│   └── models               # Model Tests (Behavior & Persistence)
+├── resources
+│   └── database             # SQL Scripts (Schema)
+├── docker-compose.yml       # Container Orchestration
+├── Dockerfile               # App Container Definition
 ├── run.py                   # Entry Point
-├── readme.md
-├── requirements.txt
-└── resources
-    └── database             # SQL Scripts
+└── requirements.txt
 ```
-
 ---
 ### Class Diagram
 ```mermaid
@@ -101,47 +90,120 @@ classDiagram
 ```
 
 ---
-### 🛠️ How to Run (Local Development)
 
-To run the project locally for development and debugging:
+### 🛠️ How to Run (Quick Start with Docker)
+
+The easiest way to run the project is using Docker Compose. This will set up the Database, Web App, and PGAdmin automatically.
 
 #### 1. Prerequisites
-- Python 3.10+ (Conda recommended)
-- Docker (for the PostgreSQL database)
+- Docker & Docker Compose installed.
 
-#### 2. Setup Database Infrastructure
-Start the PostgreSQL container using Docker Compose:
+#### 2. Run the Application
+Execute the following command in the project root:
 ```bash
-docker-compose up -d postgres
+docker-compose up --build
 ```
-*Ensure the database schema is applied (tables created).*
+*This will build the Python image, start PostgreSQL, initialize the database schema, and launch the web server.*
 
-#### 3. Configure Environment
-Create a `.env` file in the root directory or export the variables:
+#### 3. Access the Services
+- **Web Dashboard:** [http://localhost:5000](http://localhost:5000)
+- **PGAdmin (Database UI):** [http://localhost:5050](http://localhost:5050)
+  - **Email:** `admin@spacelab.com`
+  - **Password:** `admin`
+---
+#### 4. Exemplos de Telecomandos (JSON)
+
+Examples of Telecommands (JSON)
+
+These examples demonstrate how parameters should be structured when sending commands via a web interface or API.
+
+1. Shutdown (Subsystem Shutdown)
+
+Used to cut power to a specific bus (e.g., Payload) to save battery power.
+
+```json
+    {
+          "command_type": "SHUTDOWN_SUBSYSTEM",
+          "parameters": {
+                "subsystem": "PAYLOAD_LORA",
+                "delay_seconds": 0,
+                "confirmation_key": "0xDEADBEEF"
+          }
+    }
+
+```
+2. Reboot (System Restart)
+
+Command to reset the onboard computer (OBDH).
+```json
+    {
+          "command_type": "SYSTEM_REBOOT",
+          "parameters": {
+                "target": "OBDH",
+                "type": "cold_start",
+                "clear_volatile_memory": true
+          }
+    }
+
+```
+3. Battery (Heater Setting)
+
+Adjusts the heater's duty cycle to maintain the battery at operating temperature.
+
+```json
+    {
+          "command_type": "SET_HEATER_DC",
+          "parameters": {
+                "heater_id": 1,
+                "duty_cycle_percent": 85,
+                "mode": "manual"
+          }
+    }
+
+```
+4. Return Reading (Request Telemetry)
+
+Requests that the satellite send an immediate packet of specific telemetry (e.g., radio temperature).
+
+```json
+    {
+          "command_type": "REQUEST_TELEMETRY",
+          "parameters": {
+                "variable_name": "ttc_radio1_temp",
+                "samples": 5,
+                "interval_ms": 100
+          }
+    }
+
+```
+> Note: The parameters field is a JSONB object. Its structure varies depending on the command_type. Always refer to the satellite's technical manual for the required keys for each command.
+---
+
+### 🔧 How to Run (Manual / Local Development)
+
+If you prefer to run the Python application locally (outside Docker) for debugging:
+
+#### 1. Prerequisites
+- Python 3.11+ (Conda recommended)
+- PostgreSQL Database running (you can use `docker-compose up -d postgres`)
+
+#### 2. Configure Environment
+Create a `.env` file in the root directory:
 ```bash
 # Connection String: dialect+driver://username:password@host:port/database
-export PG_DATABASE_URL="postgresql+psycopg2://username:password@localhost:5432/tc_generator"
-export PG_DATABASE_URL_TEST="postgresql+psycopg2://username:password@localhost:5432/tc_generator_test"
+export PG_DATABASE_URL="postgresql+psycopg2://admin:admin@localhost:5432/tc_generator"
 ```
 
-#### 4. Install Dependencies
+#### 3. Install Dependencies
 ```bash
 conda create -n tc_generator_web python=3.11
 conda activate tc_generator_web
 pip install -r requirements.txt
 ```
 
-#### 5. Run the Application
-Execute the entry point script:
+#### 4. Run the Application
 ```bash
 python run.py
-```
-Access the dashboard at: **http://localhost:5000**
-
-#### 6. Run Tests
-Execute the test suite to ensure everything is working:
-```bash
-pytest tests/
 ```
 
 ---
@@ -153,49 +215,54 @@ Este módulo é parte do **Control Server** na estrutura de software da Estaçã
 ### 🚀 Principais Funcionalidades
 - **Arquitetura Limpa**: Separação de responsabilidades usando Models, Routes e Templates.
 - **Modelagem Robusta**: ORM SQLAlchemy 2.0 com restrições e relacionamentos completos.
-- **Database Factory**: Suporte modular para PostgreSQL (Produção/Docker) e SQLite (Testes locais).
-- **Interface Moderna**: Dashboard responsivo construído com Bootstrap 5.
-- **Testes**: Suíte de testes abrangente com `pytest` cobrindo camadas de Lógica e Persistência.
+- **Interface Moderna**: Dashboard estilo "Mission Control" responsivo.
+- **Dockerizado**: Configuração automatizada com Docker Compose.
 
-### 🛠️ Como Executar (Desenvolvimento Local)
+### 🛠️ Como Executar (Rápido com Docker)
 
-Para executar o projeto localmente para desenvolvimento e debug:
+A maneira mais fácil de rodar o projeto é usando Docker Compose. Isso configurará o Banco de Dados, a Aplicação Web e o PGAdmin automaticamente.
 
 #### 1. Pré-requisitos
-- Python 3.10+ (Recomendado usar Conda)
-- Docker (para o banco de dados PostgreSQL)
+- Docker & Docker Compose instalados.
 
-#### 2. Subir Infraestrutura de Banco de Dados
-Inicie o container PostgreSQL usando Docker Compose:
+#### 2. Executar a Aplicação
+Execute o seguinte comando na raiz do projeto:
 ```bash
-docker-compose up -d postgres
+docker-compose up --build
 ```
-*Certifique-se de que o esquema do banco de dados foi aplicado (tabelas criadas).*
+*Isso construirá a imagem Python, iniciará o PostgreSQL, inicializará o esquema do banco de dados e lançará o servidor web.*
 
-#### 3. Configurar Ambiente
+#### 3. Acessar os Serviços
+- **Dashboard Web:** [http://localhost:5000](http://localhost:5000)
+- **PGAdmin (Interface do Banco):** [http://localhost:5050](http://localhost:5050)
+  - **Email:** `admin@spacelab.com`
+  - **Senha:** `admin`
+
+---
+
+### 🔧 Como Executar (Manual / Desenvolvimento Local)
+
+Se preferir rodar a aplicação Python localmente (fora do Docker) para depuração:
+
+#### 1. Pré-requisitos
+- Python 3.11+ (Recomendado usar Conda)
+- Banco de dados PostgreSQL rodando (você pode usar `docker-compose up -d postgres`)
+
+#### 2. Configurar Ambiente
 Crie um arquivo `.env` na raiz ou exporte as variáveis:
 ```bash
 # String de Conexão: dialect+driver://username:password@host:port/database
-export PG_DATABASE_URL="postgresql+psycopg2://username:password@localhost:5432/tc_generator"
-export PG_DATABASE_URL_TEST="postgresql+psycopg2://username:password@localhost:5432/tc_generator_test"
+export PG_DATABASE_URL="postgresql+psycopg2://admin:admin@localhost:5432/tc_generator"
 ```
 
-#### 4. Instalar Dependências
+#### 3. Instalar Dependências
 ```bash
 conda create -n tc_generator_web python=3.11
 conda activate tc_generator_web
 pip install -r requirements.txt
 ```
 
-#### 5. Executar a Aplicação
-Execute o script de entrada:
+#### 4. Executar a Aplicação
 ```bash
 python run.py
-```
-Acesse o dashboard em: **http://localhost:5000**
-
-#### 6. Executar Testes
-Execute a suíte de testes para garantir que tudo está funcionando:
-```bash
-pytest tests/
 ```

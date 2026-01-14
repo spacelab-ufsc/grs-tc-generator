@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # --- Database Service ---
+  postgres:
+    image: postgres:15-alpine
+    container_name: spacelab-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-admin}
+      POSTGRES_DB: ${DB_NAME:-tc_generator}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Automatically run schema.sql on first startup
+      - ./resources/database/schema.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-admin} -d ${DB_NAME:-tc_generator}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - spacelab-network
+
+  # --- Web Application Service ---
+  tc-generator-web:
+    build: .
+    container_name: spacelab-tc-generator
+    ports:
+      - "5000:5000"
+    environment:
+      # Connection string for SQLAlchemy
+      # Format: postgresql+psycopg2://user:password@host:port/dbname
+      PG_DATABASE_URL: postgresql+psycopg2://${DB_USER:-admin}:${DB_PASSWORD:-admin}@postgres:5432/${DB_NAME:-tc_generator}
+      FLASK_APP: run.py
+      FLASK_DEBUG: 1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # Mount source code for live reloading during development
+      - ./app:/app/app
+      - ./run.py:/app/run.py
+    networks:
+      - spacelab-network
+
+  # --- Database Management Interface ---
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: spacelab-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@spacelab.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_started
+    networks:
+      - spacelab-network
+
+volumes:
+  postgres_data:
+
+networks:
+  spacelab-network:
+    driver: bridge

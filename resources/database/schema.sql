@@ -89,11 +89,45 @@ INSERT INTO satellites (name, code, description, status) VALUES
 
 -- Inserção de telecomandos de exemplo
 -- Nota: Os IDs de satélite e operador são baseados nas inserções acima
-INSERT INTO telecommands (satellite_id, operator_id, command_type, parameters, status, priority, created_at) VALUES
-(1, 2, 'RESET', '{"subsystem": "power", "force": true}', 'confirmed', 1, NOW() - INTERVAL '2 hours'),
-(1, 2, 'DATA_DOWNLINK', '{"data_type": "telemetry", "priority": "high"}', 'sent', 3, NOW() - INTERVAL '1 hour'),
-(2, 3, 'ANTENNA_DEPLOY', '{"antenna_id": 1, "deploy_sequence": [1,2,3,4]}', 'pending', 1, NOW() - INTERVAL '30 minutes'),
-(3, 2, 'CAMERA_CAPTURE', '{"resolution": "high", "exposure": 0.5, "filter": "visible"}', 'failed', 5, NOW() - INTERVAL '15 minutes');
+-- INSERT INTO telecommands (satellite_id, operator_id, command_type, parameters, status, priority, created_at) VALUES
+-- (1, 2, 'RESET', '{"subsystem": "power", "force": true}', 'confirmed', 1, NOW() - INTERVAL '2 hours'),
+-- (1, 2, 'DATA_DOWNLINK', '{"data_type": "telemetry", "priority": "high"}', 'sent', 3, NOW() - INTERVAL '1 hour'),
+-- (2, 3, 'ANTENNA_DEPLOY', '{"antenna_id": 1, "deploy_sequence": [1,2,3,4]}', 'pending', 1, NOW() - INTERVAL '30 minutes'),
+-- (3, 2, 'CAMERA_CAPTURE', '{"resolution": "high", "exposure": 0.5, "filter": "visible"}', 'failed', 5, NOW() - INTERVAL '15 minutes');
+
+-- Script para popular a tabela telecommands com comandos reais do FloripaSat-2A
+
+INSERT INTO telecommands (satellite_id, operator_id, command_type, parameters, status, priority, metadata)
+VALUES
+-- 1. Comando para ligar aquecedor de bateria (baseado na variável eps_bat_heater_1_dc)
+(1, 1, 'SET_HEATER_1_DUTY_CYCLE', '{"value": 100, "unit": "%"}', 'pending', 8, '{"reason": "Cold internal temperature detected", "subsystem": "EPS"}'),
+
+-- 2. Comando para resetar o sistema OBDH (baseado na variável obdh_mcu_rst_count)
+(1, 1, 'SYSTEM_RESET', '{"target": "OBDH", "mode": "hard_reset"}', 'pending', 10, '{"reason": "Software watchdog manual trigger"}'),
+
+-- 3. Ajuste de MPPT (baseado na variável eps_mppt_1_dc)
+(1, 1, 'SET_MPPT_MODE', '{"mppt_id": 1, "duty_cycle": 85}', 'sent', 5, '{"reason": "Optimize solar energy collection"}'),
+
+-- 4. Comando de Ping (Teste de comunicação)
+(1, 1, 'PING', '{"payload": "0x55AA"}', 'confirmed', 1, '{"confirmed_at": "2025-12-22T18:40:00Z"}'),
+
+-- 5. Alteração de intervalo de Beacon (Economia de energia)
+(1, 1, 'SET_BEACON_INTERVAL', '{"seconds": 60}', 'queued', 7, '{"reason": "Low battery mode"}'),
+
+-- 6. Limpeza de log de erros (Manutenção)
+(1, 1, 'CLEAR_LOGS', '{"target": "all"}', 'pending', 3, '{"reason": "Routine maintenance"}'),
+
+-- 7. Ativação de carga útil (Payload)
+(1, 1, 'START_EXPERIMENT', '{"experiment_id": "LORA_TEST", "duration_min": 15}', 'failed', 6, '{"status_message": "Satellite in eclipse, power low"}'),
+
+-- 8. Configuração de ganho de rádio (baseado na variável lora_fsat2a_rssi)
+(1, 1, 'SET_RADIO_GAIN', '{"radio_id": 1, "gain_db": 20}', 'pending', 5, '{"reason": "Improve signal-to-noise ratio"}'),
+
+-- 9. Ajuste de aquecedor de bateria 2 (baseado na variável eps_bat_heater_2_dc)
+(1, 1, 'SET_HEATER_2_DUTY_CYCLE', '{"value": 50, "unit": "%"}', 'pending', 8, '{"subsystem": "EPS", "reason": "Thermal balancing"}'),
+
+-- 10. Sincronização de relógio (baseado na variável obdh_timestamp)
+(1, 1, 'SYNC_CLOCK', '{"unix_timestamp": 1734889200}', 'sent', 9, '{"reason": "Drift correction"}');
 
 -- Inserção de logs de execução de exemplo
 INSERT INTO execution_logs (telecommand_id, status, message, details, created_by) VALUES
