@@ -248,7 +248,7 @@
                 <div class="sidebar-title">Satellites</div>
                 <ul class="nav-list">
                     {% for sat in satellites %}
-                    <li class="nav-item">
+                    <li class="nav-item" onclick='openSatelliteModal({{ sat.to_dict()|tojson }})'>
                         <span><i class="bi bi-hdd-network me-2"></i> {{ sat.name }}</span>
                         <span class="badge {{ 'success' if sat.status == 'active' else 'warning' }}">{{ sat.code }}</span>
                     </li>
@@ -310,7 +310,6 @@
                     </thead>
                     <tbody>
                         {% for tc in pending_tcs + sent_tcs %}
-                        <!-- FIX: Use single quotes for onclick attribute to allow double quotes in JSON -->
                         <tr onclick='openDetailsModal({{ tc.to_dict()|tojson }})'>
                             <td>#{{ tc.id }}</td>
                             <td><span style="color: #fff; font-weight: 600;">{{ tc.command_type }}</span></td>
@@ -350,7 +349,6 @@
                     </thead>
                     <tbody>
                         {% for tc in history_tcs %}
-                        <!-- FIX: Use single quotes for onclick attribute -->
                         <tr class="search-item" onclick='openDetailsModal({{ tc.to_dict()|tojson }})'>
                             <td>{{ tc.id }}</td>
                             <td>{{ tc.command_type }}</td>
@@ -490,6 +488,50 @@
         </div>
     </div>
 
+    <!-- Satellite Modal -->
+    <div class="modal" id="satelliteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Manage Satellite <span id="satModalTitleId" style="color: #888; margin-left: 10px;"></span></h5>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('satelliteModal')"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="stats-grid" style="grid-template-columns: 2fr 1fr; margin-bottom: 1rem;">
+                    <div>
+                        <label class="form-label">Name</label>
+                        <input type="text" id="satName" class="form-control" required>
+                    </div>
+                    <div>
+                        <label class="form-label">Code (Unique)</label>
+                        <input type="text" id="satCode" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select id="satStatus" class="form-control">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="maintenance">Maintenance</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea id="satDescription" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <form id="satDeleteForm" method="POST" style="margin-right: auto;">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this satellite? WARNING: This will delete all associated telecommands!')">Delete</button>
+                </form>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('satelliteModal')">Close</button>
+                <button type="button" class="btn btn-success" onclick="saveSatellite(true)">Create New</button>
+                <button type="button" class="btn btn-primary" onclick="saveSatellite(false)">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Tab Switching
         function switchTab(tabName) {
@@ -583,6 +625,53 @@
                 
             } catch (e) {
                 alert('Invalid JSON format in parameters! Please check syntax.');
+            }
+        }
+
+        // --- Satellite Modal Logic ---
+        let currentSatId = null;
+
+        function openSatelliteModal(satData) {
+            currentSatId = satData.id;
+            document.getElementById('satModalTitleId').innerText = '#' + satData.id;
+            
+            document.getElementById('satName').value = satData.name;
+            document.getElementById('satCode').value = satData.code;
+            document.getElementById('satStatus').value = satData.status;
+            document.getElementById('satDescription').value = satData.description || '';
+            
+            document.getElementById('satDeleteForm').action = `/satellite/delete/${satData.id}`;
+            
+            document.getElementById('satelliteModal').classList.add('active');
+        }
+
+        async function saveSatellite(asNew) {
+            const payload = {
+                name: document.getElementById('satName').value,
+                code: document.getElementById('satCode').value,
+                status: document.getElementById('satStatus').value,
+                description: document.getElementById('satDescription').value
+            };
+            
+            let url = asNew ? '/satellite/create' : `/satellite/update/${currentSatId}`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(result.message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (e) {
+                alert('Network error occurred.');
             }
         }
 

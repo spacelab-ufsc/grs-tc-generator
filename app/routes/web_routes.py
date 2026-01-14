@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from sqlalchemy import desc
+from sqlalchemy.exc import IntegrityError
 import json
 from app.database.factories.database_manager import DatabaseManager
 from app.models.telecommand import Telecommand
@@ -31,8 +32,8 @@ def index():
             .order_by(desc(Telecommand.created_at))\
             .limit(10).all()
             
-        # Fetch satellites for the create modal dropdown
-        satellites = session.query(Satellite).filter_by(status='active').all()
+        # Fetch all satellites (not just active) for the sidebar list
+        satellites = session.query(Satellite).order_by(Satellite.name).all()
         
         # Fetch operators (In a real app, this would be the logged-in user)
         operators = session.query(Operator).filter_by(status='active').all()
@@ -47,6 +48,8 @@ def index():
         )
     finally:
         session.close()
+
+# --- Telecommand Routes ---
 
 @web_bp.route('/telecommand/create', methods=['POST'])
 def create_telecommand():
@@ -113,8 +116,6 @@ def update_telecommand(tc_id):
             tc.priority = int(data['priority'])
             
         if 'status' in data:
-            # Use update_status method if available to handle timestamps, 
-            # otherwise set directly
             if hasattr(tc, 'update_status'):
                 tc.update_status(data['status'])
             else:
@@ -144,6 +145,85 @@ def delete_telecommand(tc_id):
     except Exception as e:
         session.rollback()
         flash(f'Error deleting: {str(e)}', 'danger')
+    finally:
+        session.close()
+        
+    return redirect(url_for('web.index'))
+
+# --- Satellite Routes ---
+
+@web_bp.route('/satellite/create', methods=['POST'])
+def create_satellite():
+    """Handle satellite creation via AJAX."""
+    session = DatabaseManager.get_session()
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+
+        new_sat = Satellite(
+            name=data['name'],
+            code=data['code'],
+            status=data['status'],
+            description=data.get('description', '')
+        )
+        
+        session.add(new_sat)
+        session.commit()
+        return jsonify({'success': True, 'message': 'Satellite created successfully'})
+        
+    except IntegrityError:
+        session.rollback()
+        return jsonify({'success': False, 'error': 'Satellite code must be unique.'}), 400
+    except Exception as e:
+        session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        session.close()
+
+@web_bp.route('/satellite/update/<int:sat_id>', methods=['POST'])
+def update_satellite(sat_id):
+    """Handle satellite updates via AJAX."""
+    session = DatabaseManager.get_session()
+    try:
+        sat = session.get(Satellite, sat_id)
+        if not sat:
+            return jsonify({'success': False, 'error': 'Satellite not found'}), 404
+            
+        data = request.get_json()
+        
+        if 'name' in data: sat.name = data['name']
+        if 'code' in data: sat.code = data['code']
+        if 'status' in data: sat.status = data['status']
+        if 'description' in data: sat.description = data['description']
+        
+        session.commit()
+        return jsonify({'success': True, 'message': 'Satellite updated successfully'})
+        
+    except IntegrityError:
+        session.rollback()
+        return jsonify({'success': False, 'error': 'Satellite code must be unique.'}), 400
+    except Exception as e:
+        session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        session.close()
+
+@web_bp.route('/satellite/delete/<int:sat_id>', methods=['POST'])
+def delete_satellite(sat_id):
+    """Handle satellite deletion."""
+    session = DatabaseManager.get_session()
+    try:
+        sat = session.get(Satellite, sat_id)
+        if sat:
+            session.delete(sat)
+            session.commit()
+            flash(f'Satellite {sat.name} deleted.', 'success')
+        else:
+            flash('Satellite not found.', 'warning')
+    except Exception as e:
+        session.rollback()
+        flash(f'Error deleting satellite: {str(e)}', 'danger')
     finally:
         session.close()
         
