@@ -87,7 +87,7 @@ def create_telecommand():
 
 @web_bp.route('/telecommand/update/<int:tc_id>', methods=['POST'])
 def update_telecommand(tc_id):
-    """Handle telecommand updates (parameters) via AJAX."""
+    """Handle telecommand updates via AJAX."""
     session = DatabaseManager.get_session()
     try:
         tc = session.get(Telecommand, tc_id)
@@ -99,9 +99,26 @@ def update_telecommand(tc_id):
         if not data:
             return jsonify({'success': False, 'error': 'No data provided'}), 400
 
-        # Update parameters if provided
+        # Update fields if provided
         if 'parameters' in data:
             tc.parameters = data['parameters']
+        
+        if 'satellite_id' in data:
+            tc.satellite_id = int(data['satellite_id'])
+            
+        if 'command_type' in data:
+            tc.command_type = data['command_type']
+            
+        if 'priority' in data:
+            tc.priority = int(data['priority'])
+            
+        if 'status' in data:
+            # Use update_status method if available to handle timestamps, 
+            # otherwise set directly
+            if hasattr(tc, 'update_status'):
+                tc.update_status(data['status'])
+            else:
+                tc.status = data['status']
             
         session.commit()
         return jsonify({'success': True, 'message': 'Telecommand updated successfully'})

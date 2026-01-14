@@ -187,6 +187,7 @@
             font-family: inherit;
         }
         .form-control:focus { outline: none; border-color: #00d9ff; }
+        .form-control:disabled { background: #1a1a2e; color: #888; border-color: #2a2a4a; cursor: not-allowed; }
         
         /* JSON Editor */
         .json-editor {
@@ -231,9 +232,7 @@
 
     <!-- Header -->
     <div class="header">
-        <h1><img src="https://raw.githubusercontent.com/spacelab-ufsc/grs-doc/main/img/logo-wide.png"
-                         alt="SpaceLab UFSC"
-                         style="height: 60px;"> SpaceLab Mission Control</h1>
+        <h1><i class="bi bi-rocket-takeoff"></i> SpaceLab Mission Control</h1>
         <div class="header-actions">
             <div class="badge success"><i class="bi bi-circle-fill" style="font-size: 6px; vertical-align: middle; margin-right: 4px;"></i> System Nominal</div>
             <button class="btn btn-primary" onclick="openCreateModal()">
@@ -311,7 +310,8 @@
                     </thead>
                     <tbody>
                         {% for tc in pending_tcs + sent_tcs %}
-                        <tr onclick="openDetailsModal({{ tc.to_dict()|tojson }})">
+                        <!-- FIX: Use single quotes for onclick attribute to allow double quotes in JSON -->
+                        <tr onclick='openDetailsModal({{ tc.to_dict()|tojson }})'>
                             <td>#{{ tc.id }}</td>
                             <td><span style="color: #fff; font-weight: 600;">{{ tc.command_type }}</span></td>
                             <td>{{ tc.satellite.code }}</td>
@@ -322,7 +322,7 @@
                             </td>
                             <td>{{ tc.created_at.strftime('%H:%M:%S') }}</td>
                             <td>
-                                <button class="btn btn-secondary" style="padding: 2px 6px; font-size: 0.7rem;">View</button>
+                                <button class="btn btn-secondary" style="padding: 2px 6px; font-size: 0.7rem;">Edit</button>
                             </td>
                         </tr>
                         {% endfor %}
@@ -333,10 +333,10 @@
             <!-- All Telecommands Panel -->
             <div class="panel" id="telecommandsPanel">
                 <div class="header-actions" style="margin-bottom: 1rem;">
-                    <input type="text" class="form-control" placeholder="Search commands..." style="width: 300px;">
-                    <button class="btn btn-secondary"><i class="bi bi-filter"></i> Filter</button>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search commands..." style="width: 300px;">
+                    <button class="btn btn-secondary" onclick="filterTable()"><i class="bi bi-filter"></i> Filter</button>
                 </div>
-                <table class="data-table">
+                <table class="data-table" id="allCommandsTable">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -350,7 +350,8 @@
                     </thead>
                     <tbody>
                         {% for tc in history_tcs %}
-                        <tr onclick="openDetailsModal({{ tc.to_dict()|tojson }})">
+                        <!-- FIX: Use single quotes for onclick attribute -->
+                        <tr class="search-item" onclick='openDetailsModal({{ tc.to_dict()|tojson }})'>
                             <td>{{ tc.id }}</td>
                             <td>{{ tc.command_type }}</td>
                             <td>{{ tc.satellite.code }}</td>
@@ -424,27 +425,53 @@
         </div>
     </div>
 
-    <!-- Details Modal -->
+    <!-- Details/Edit Modal -->
     <div class="modal" id="detailsModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Telecommand Details <span id="detailId" style="color: #888; margin-left: 10px;"></span></h5>
+                <h5 class="modal-title">Edit Telecommand <span id="detailId" style="color: #888; margin-left: 10px;"></span></h5>
                 <button type="button" class="btn btn-secondary" onclick="closeModal('detailsModal')"><i class="bi bi-x-lg"></i></button>
             </div>
             <div class="modal-body">
                 <div class="stats-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 1rem;">
                     <div>
                         <label class="form-label">Status</label>
-                        <div id="detailStatus" class="badge"></div>
+                        <select id="detailStatus" class="form-control">
+                            <option value="pending">Pending</option>
+                            <option value="queued">Queued</option>
+                            <option value="sent">Sent</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="failed">Failed</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="form-label">Type</label>
-                        <div id="detailType" style="font-weight: bold; color: #fff;"></div>
+                        <label class="form-label">Operator (Read-only)</label>
+                        <input type="text" id="detailOperator" class="form-control" disabled>
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Parameters (Editable)</label>
+                    <label class="form-label">Target Satellite</label>
+                    <select id="detailSatellite" class="form-control">
+                        {% for sat in satellites %}
+                        <option value="{{ sat.id }}">{{ sat.name }} ({{ sat.code }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="stats-grid" style="grid-template-columns: 2fr 1fr; margin-bottom: 1rem;">
+                    <div>
+                        <label class="form-label">Command Type</label>
+                        <input type="text" id="detailType" class="form-control">
+                    </div>
+                    <div>
+                        <label class="form-label">Priority</label>
+                        <input type="number" id="detailPriority" class="form-control" min="1" max="10">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Parameters (JSON)</label>
                     <textarea id="detailParams" class="json-editor"></textarea>
                 </div>
                 
@@ -458,7 +485,7 @@
                     <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this command?')">Delete</button>
                 </form>
                 <button type="button" class="btn btn-secondary" onclick="closeModal('detailsModal')">Close</button>
-                <button type="button" class="btn btn-primary" onclick="saveParams()">Save Changes</button>
+                <button type="button" class="btn btn-primary" onclick="saveTelecommand()">Save Changes</button>
             </div>
         </div>
     </div>
@@ -488,16 +515,27 @@
 
         // Details Modal Logic
         let currentTcId = null;
+        // Store operators map for easy lookup if needed, though we use ID from backend
+        const operatorsMap = {
+            {% for op in operators %}
+            {{ op.id }}: "{{ op.username }}",
+            {% endfor %}
+        };
 
         function openDetailsModal(tcData) {
+            console.log("Opening modal for:", tcData); // Debugging
             currentTcId = tcData.id;
             
             document.getElementById('detailId').innerText = '#' + tcData.id;
-            document.getElementById('detailType').innerText = tcData.command_type;
             
-            const statusBadge = document.getElementById('detailStatus');
-            statusBadge.innerText = tcData.status;
-            statusBadge.className = 'badge ' + (tcData.status === 'pending' ? 'warning' : 'success');
+            // Fill Inputs
+            document.getElementById('detailType').value = tcData.command_type;
+            document.getElementById('detailPriority').value = tcData.priority;
+            document.getElementById('detailStatus').value = tcData.status;
+            document.getElementById('detailSatellite').value = tcData.satellite_id;
+            
+            // Operator Lookup
+            document.getElementById('detailOperator').value = operatorsMap[tcData.operator_id] || 'ID: ' + tcData.operator_id;
             
             // Format JSON parameters
             const params = tcData.parameters || {};
@@ -513,24 +551,31 @@
             document.getElementById('detailsModal').classList.add('active');
         }
 
-        async function saveParams() {
+        async function saveTelecommand() {
             if (!currentTcId) return;
             
             try {
-                const newParams = JSON.parse(document.getElementById('detailParams').value);
+                // Collect all data
+                const payload = {
+                    command_type: document.getElementById('detailType').value,
+                    priority: document.getElementById('detailPriority').value,
+                    status: document.getElementById('detailStatus').value,
+                    satellite_id: document.getElementById('detailSatellite').value,
+                    parameters: JSON.parse(document.getElementById('detailParams').value)
+                };
                 
                 const response = await fetch(`/telecommand/update/${currentTcId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ parameters: newParams })
+                    body: JSON.stringify(payload)
                 });
                 
                 const result = await response.json();
                 
                 if (result.success) {
-                    alert('Parameters updated successfully!');
+                    alert('Telecommand updated successfully!');
                     location.reload(); // Reload to reflect changes
                 } else {
                     alert('Error updating: ' + result.error);
@@ -540,6 +585,32 @@
                 alert('Invalid JSON format in parameters! Please check syntax.');
             }
         }
+
+        // Search Filter Logic
+        function filterTable() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById('allCommandsTable');
+            const tr = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < tr.length; i++) { // Start from 1 to skip header
+                let visible = false;
+                const tds = tr[i].getElementsByTagName('td');
+                for (let j = 0; j < tds.length; j++) {
+                    if (tds[j]) {
+                        const txtValue = tds[j].textContent || tds[j].innerText;
+                        if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                            visible = true;
+                            break;
+                        }
+                    }
+                }
+                tr[i].style.display = visible ? "" : "none";
+            }
+        }
+        
+        // Add event listener for real-time search
+        document.getElementById('searchInput').addEventListener('keyup', filterTable);
 
         // Close modals on outside click
         window.onclick = function(event) {
