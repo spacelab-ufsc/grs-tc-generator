@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from sqlalchemy import desc
+import json
 from app.database.factories.database_manager import DatabaseManager
 from app.models.telecommand import Telecommand
 from app.models.satellite import Satellite
@@ -25,9 +26,6 @@ def index():
             .limit(10).all()
 
         # History: Confirmed or Failed
-        # Since Telecommand doesn't have updated_at, we use confirmed_at for confirmed ones
-        # and created_at for failed ones (or just created_at for generic sorting)
-        # Using created_at is safer as it's always present.
         history_tcs = session.query(Telecommand)\
             .filter(Telecommand.status.in_(['confirmed', 'failed']))\
             .order_by(desc(Telecommand.created_at))\
@@ -57,13 +55,22 @@ def create_telecommand():
     try:
         data = request.form
         
+        # Parse parameters JSON if provided
+        params = {}
+        if data.get('parameters'):
+            try:
+                params = json.loads(data['parameters'])
+            except json.JSONDecodeError:
+                flash('Invalid JSON in parameters field', 'warning')
+                return redirect(url_for('web.index'))
+
         new_tc = Telecommand(
             satellite_id=int(data['satellite_id']),
-            operator_id=int(data['operator_id']), # In real app: current_user.id
+            operator_id=int(data['operator_id']),
             command_type=data['command_type'],
             priority=int(data['priority']),
             status='pending',
-            parameters={} # Simplified for now, could parse JSON from form
+            parameters=params
         )
         
         session.add(new_tc)
@@ -77,6 +84,33 @@ def create_telecommand():
         session.close()
         
     return redirect(url_for('web.index'))
+
+@web_bp.route('/telecommand/update/<int:tc_id>', methods=['POST'])
+def update_telecommand(tc_id):
+    """Handle telecommand updates (parameters) via AJAX."""
+    session = DatabaseManager.get_session()
+    try:
+        tc = session.get(Telecommand, tc_id)
+        if not tc:
+            return jsonify({'success': False, 'error': 'Telecommand not found'}), 404
+            
+        # Get JSON data from request body
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+
+        # Update parameters if provided
+        if 'parameters' in data:
+            tc.parameters = data['parameters']
+            
+        session.commit()
+        return jsonify({'success': True, 'message': 'Telecommand updated successfully'})
+        
+    except Exception as e:
+        session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        session.close()
 
 @web_bp.route('/telecommand/delete/<int:tc_id>', methods=['POST'])
 def delete_telecommand(tc_id):
