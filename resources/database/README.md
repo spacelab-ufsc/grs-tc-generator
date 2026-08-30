@@ -23,8 +23,8 @@ The database contains the following main tables:
 2. Configure the environment variables in the `.env` file at the root of the project:
    ```
    DB_HOST=localhost
-   DB_PORT=5432
-   DB_NAME=tc_generator
+   DB_PORT_INTERNAL=5432
+   DB_NAME=telecommand_db
    DB_USER=root
    DB_PASSWORD=root
    ```
@@ -46,7 +46,7 @@ python database/script_init_db.py
 ### Using psql (command line)
 
 ```bash
-psql -h localhost -U root -d tc_generator
+psql -h localhost -U root -d telecommand_db
 ```
 
 ### Using Python
@@ -60,7 +60,7 @@ load_dotenv()
 
 conn = psycopg2.connect(
     host=os.getenv('DB_HOST'),
-    port=os.getenv('DB_PORT'),
+    port=os.getenv('DB_PORT_INTERNAL'),
     dbname=os.getenv('DB_NAME'),
     user=os.getenv('DB_USER'),
     password=os.getenv('DB_PASSWORD')
@@ -98,13 +98,13 @@ To make changes to the database schema, follow these steps:
 ### Backup
 
 ```bash
-pg_dump -h localhost -U root -d tc_generator > backup_$(date +%Y%m%d).sql
+pg_dump -h localhost -U root -d telecommand_db > backup_$(date +%Y%m%d).sql
 ```
 
 ### Restore
 
 ```bash
-psql -h localhost -U root -d tc_generator < backup_20231119.sql
+psql -h localhost -U root -d telecommand_db < backup_20231119.sql
 ```
 
 ## Troubleshooting
@@ -136,8 +136,8 @@ O banco de dados contém as seguintes tabelas principais:
 2. Configure as variáveis de ambiente no arquivo `.env` na raiz do projeto:
    ```
    DB_HOST=localhost
-   DB_PORT=5432
-   DB_NAME=tc_generator
+   DB_PORT_INTERNAL=5432
+   DB_NAME=telecommand_db
    DB_USER=root
    DB_PASSWORD=root
    ```
@@ -159,7 +159,7 @@ python database/script_init_db.py
 ### Usando psql (linha de comando)
 
 ```bash
-psql -h localhost -U root -d tc_generator
+psql -h localhost -U root -d telecommand_db
 ```
 
 ### Usando Python
@@ -173,7 +173,7 @@ load_dotenv()
 
 conn = psycopg2.connect(
     host=os.getenv('DB_HOST'),
-    port=os.getenv('DB_PORT'),
+    port=os.getenv('DB_PORT_INTERNAL'),
     dbname=os.getenv('DB_NAME'),
     user=os.getenv('DB_USER'),
     password=os.getenv('DB_PASSWORD')
@@ -211,13 +211,13 @@ Para fazer alterações no esquema do banco de dados, siga estes passos:
 ### Backup
 
 ```bash
-pg_dump -h localhost -U root -d tc_generator > backup_$(date +%Y%m%d).sql
+pg_dump -h localhost -U root -d telecommand_db > backup_$(date +%Y%m%d).sql
 ```
 
 ### Restauração
 
 ```bash
-psql -h localhost -U root -d tc_generator < backup_20231119.sql
+psql -h localhost -U root -d telecommand_db < backup_20231119.sql
 ```
 
 ## Solução de Problemas

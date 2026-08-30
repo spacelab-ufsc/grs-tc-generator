@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpaceLab - Ground Station | Spectrum Monitor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0e14;
+            --panel-color: #161b22;
+            --accent-color: #58a6ff;
+            --text-color: #c9d1d9;
+            --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            font-family: var(--font-main);
+            overflow: hidden;
+        }
+
+        header {
+            background: var(--panel-color);
+            padding: 10px 20px;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: var(--panel-color);
+            border-right: 1px solid #30363d;
+            padding: 20px;
+            font-size: 0.9em;
+        }
+
+        .content {
+            flex: 1;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        canvas {
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            max-width: 100%;
+        }
+
+        #fft-plot {
+            height: 150px;
+            background: #000;
+        }
+
+        #waterfall {
+            flex-grow: 1;
+            image-rendering: pixelated;
+        }
+
+        .stat-card {
+            background: #0d1117;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .label {
+            color: #8b949e;
+            font-size: 0.8em;
+            text-transform: uppercase;
+        }
+
+        .value {
+            font-family: monospace;
+            font-size: 1.1em;
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div style="font-weight: bold; font-size: 1.2em;">
+            <!-- Exemplo de botão de voltar ao index -->
+            <a href="{{ url_for('web.index') }}" class="btn btn-secondary mb-3">
+                🔙 Home
+            </a>
+
+            SpaceLab <span style="font-weight: 100; color: #8b949e;">| Spectrum Monitor</span>
+        </div>
+        <div id="status-tag" style="color: #3fb950; font-size: 0.8em;">● LIVE STREAMING</div>
+    </header>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="stat-card">
+                <div class="label">Frequência Central</div>
+                <div class="value">437.500 MHz</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Sample Rate</div>
+                <div class="value">2.048 Msps</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">FFT Size</div>
+                <div class="value">1024 points</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Ganho Visual</div>
+                <input type="range" id="gain-slider" min="1" max="10" step="0.5" value="5" style="width: 100%;">
+                <div class="value" id="gain-val" style="font-size: 0.8em; text-align: right;">5.0x</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="label">Detection Threshold</div>
+                <input type="range" id="threshold-slider" min="-100" max="0" step="1" value="-40" style="width: 100%;">
+                <div class="value" id="threshold-val" style="font-size: 0.8em; text-align: right;">-40 dB</div>
+            </div>
+            <div style="margin-top: auto; color: #8b949e; font-size: 0.7em;">
+                SpaceLab Ground Station v1.0<br>
+                UFSC - 2026
+            </div>
+        </div>
+
+        <div class="content">
+            <canvas id="fft-plot" width="1024" height="150"></canvas>
+            <canvas id="waterfall" width="1024" height="400"></canvas>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center text-muted py-4 mt-5">
+        <small>&copy; 2026 SpaceLab. All systems nominal.</small>
+    </footer>
+
+    <script>
+        const socket = io();
+        const canvasW = document.getElementById('waterfall');
+        const ctxW = canvasW.getContext('2d');
+        const canvasF = document.getElementById('fft-plot');
+        const ctxF = canvasF.getContext('2d');
+
+        // Elementos dos Sliders
+        const gainSlider = document.getElementById('gain-slider');
+        const gainValDisp = document.getElementById('gain-val');
+        const thresholdSlider = document.getElementById('threshold-slider');
+        const thresholdValDisp = document.getElementById('threshold-val');
+        const statusTag = document.getElementById('status-tag');
+
+        // Variáveis de controle
+        let currentGain = 5.0;
+        let currentThreshold = -40;
+
+        // Listeners para os Sliders
+        gainSlider.oninput = function () {
+            currentGain = parseFloat(this.value);
+            gainValDisp.innerText = currentGain.toFixed(1) + "x";
+        };
+
+        thresholdSlider.oninput = function () {
+            currentThreshold = parseInt(this.value);
+            thresholdValDisp.innerText = currentThreshold + " dB";
+        };
+
+        function getColor(dbValue) {
+            // Aplicamos o GANHO aqui (currentGain substitui o multiplicador fixo)
+            let v = (dbValue + 85) / 60 * (currentGain / 5);
+            v = Math.max(0, Math.min(1, v));
+            const r = Math.pow(v, 1.5) * 255;
+            const g = Math.pow(v, 3.0) * 255;
+            const b = Math.pow(v, 0.5) * 180;
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        socket.on('spectrum_data', (msg) => {
+            const db = msg.db;
+            const w = canvasW.width;
+            const h = canvasW.height;
+
+            // --- RENDERIZA FFT PLOT ---
+            ctxF.clearRect(0, 0, w, 150);
+
+            // Desenha a linha de Threshold
+            const thresholdY = 150 - ((currentThreshold + 100) * 1.5);
+            ctxF.beginPath();
+            ctxF.strokeStyle = 'rgba(255, 0, 0, 0.5)'; // Vermelho transparente
+            ctxF.setLineDash([5, 5]);
+            ctxF.moveTo(0, thresholdY);
+            ctxF.lineTo(w, thresholdY);
+            ctxF.stroke();
+            ctxF.setLineDash([]); // Reseta o tracejado
+
+            // Desenha o Espectro
+            ctxF.beginPath();
+            ctxF.strokeStyle = '#58a6ff';
+            let signalDetected = false;
+
+            db.forEach((val, i) => {
+                const x = i * (w / db.length);
+                const y = 150 - ((val + 100) * 1.5);
+                if (i === 0) ctxF.moveTo(x, y);
+                else ctxF.lineTo(x, y);
+
+                // Lógica de Detecção: se algum ponto passar o threshold
+                if (val > currentThreshold) signalDetected = true;
+            });
+            ctxF.stroke();
+
+            // Atualiza o Status Tag se detectar sinal
+            if (signalDetected) {
+                statusTag.innerText = "● SIGNAL DETECTED";
+                statusTag.style.color = "#f2cc60"; // Amarelo alerta
+            } else {
+                statusTag.innerText = "● LIVE STREAMING";
+                statusTag.style.color = "#3fb950"; // Verde normal
+            }
+
+            // --- RENDERIZA WATERFALL (Mesma lógica anterior usando o novo getColor) ---
+            const imgData = ctxW.getImageData(0, 0, w, h - 1);
+            ctxW.putImageData(imgData, 0, 1);
+            const step = w / db.length;
+            db.forEach((val, i) => {
+                ctxW.fillStyle = getColor(val);
+                ctxW.fillRect(i * step, 0, step + 1, 1);
+            });
+        });
+    </script>
+</body>
+
+</html>

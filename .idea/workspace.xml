@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="5a258aca-caaf-46d0-a1f6-b18564a14b59" name="Changes" comment="update: The readme file has been updated with a section in English in the resources/database" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ChangesViewManager">
+    <option name="groupingKeys">
+      <option value="directory" />
+      <option value="repository" />
+    </option>
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_/Users/hayden/workspace/spacelab/tc_generator_web" value="37x7YNklarw07Xw94jA7cz1MV8Q" />
+    </persistenceIdMap>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Flask Main" />
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="FlaskConsoleOptions" custom-start-script="import sys; print('Python %s on %s' % (sys.version, sys.platform)); sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo, NoAppException&#10;for module in [&quot;main.py&quot;, &quot;wsgi.py&quot;, &quot;app.py&quot;]:&#10;    try: locals().update(ScriptInfo(app_import_path=module, create_app=None).load_app().make_shell_context()); print(&quot;\nFlask App: %s&quot; % app.import_name); break&#10;    except NoAppException: pass">
+    <envs>
+      <env key="FLASK_APP" value="app" />
+    </envs>
+    <option name="myCustomStartScript" value="import sys; print('Python %s on %s' % (sys.version, sys.platform)); sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo, NoAppException&#10;for module in [&quot;main.py&quot;, &quot;wsgi.py&quot;, &quot;app.py&quot;]:&#10;    try: locals().update(ScriptInfo(app_import_path=module, create_app=None).load_app().make_shell_context()); print(&quot;\nFlask App: %s&quot; % app.import_name); break&#10;    except NoAppException: pass" />
+    <option name="myEnvs">
+      <map>
+        <entry key="FLASK_APP" value="app" />
+      </map>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="HARD" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;JunhaumHayden&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/spacelab-ufsc/grs-tc-generator.git&quot;,
+    &quot;accountId&quot;: &quot;696841ca-e4e2-4912-a03f-ff4d54ed249f&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="37x7YNklarw07Xw94jA7cz1MV8Q" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python tests.Python tests for tests.db_test.TestDatabase.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_execution_log.TestExecutionLogBehavior.test_create_log_helper.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_execution_log.TestExecutionLogPersistence.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperator.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperator.test_create_operator.executor&quot;: &quot;Debug&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperator.test_database_connection.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperator.test_operator_delete.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperator.test_operator_retrieval_by_id.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperator.test_operator_retrieval_username.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperator.test_operators_retrieval_all.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperator.test_operators_retrieval_by_id.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperator.test_operators_table.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperator.test_operators_update.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperator.test_password_hashing.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperator.test_required_fields.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperator.test_required_fields_parametrize.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperator.test_role_validation.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperatorBehavior.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperatorBehavior.test_repr_format.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperatorBehavior.test_to_dict_format.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperatorBehavior.test_to_dict_with_sensitive_data.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperatorPersistence.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperatorPersistence.test_constraint_unique_username.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperatorPersistence.test_delete_operator.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperatorPersistence.test_get_all_operators.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperatorPersistence.test_get_operator_by_id.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperatorPersistence.test_get_operator_by_username.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.TestOperatorPersistence.test_update_operator.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.test_operator.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_operator.test_operator_creation.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_satellite.TestSatellite.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_satellite.TestSatellite.test_get_all_satellites.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_satellite.TestSatelliteBehavior.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_satellite.TestSatellitePersistence.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_telecommand.TestTelecommand.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_telecommand.TestTelecommand.test_create_telecommand.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_telecommand.TestTelecommandBehavior.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_telecommand.TestTelecommandModel.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.models.test_telecommand.TestTelecommandPersistence.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests for tests.test_database_connection.test_database_connection.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in db_test.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python.connector.executor&quot;: &quot;Run&quot;,
+    &quot;Python.run.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/hayden/workspace/spacelab/tc_generator_web/app&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;postgresql&quot;
+    ]
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/app" />
+      <recent name="$PROJECT_DIR$" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/resources" />
+      <recent name="$PROJECT_DIR$/app" />
+      <recent name="$PROJECT_DIR$/tests" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.run">
+    <configuration name="run" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="tc_generator_web" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/run.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="spacelabtc_genarator" type="Python.FlaskServer">
+      <module name="tc_generator_web" />
+      <option name="target" value="$PROJECT_DIR$/app/app.md" />
+      <option name="targetType" value="PATH" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="launchJavascriptDebuger" value="false" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for tests.models.test_execution_log.TestExecutionLogBehavior.test_create_log_helper" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="tc_generator_web" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;tests.models.test_execution_log.TestExecutionLogBehavior.test_create_log_helper&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for tests.models.test_execution_log.TestExecutionLogPersistence" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="tc_generator_web" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;tests.models.test_execution_log.TestExecutionLogPersistence&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for tests.models.test_telecommand.TestTelecommandBehavior" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="tc_generator_web" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;tests.models.test_telecommand.TestTelecommandBehavior&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for tests.models.test_telecommand.TestTelecommandPersistence" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="tc_generator_web" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;tests.models.test_telecommand.TestTelecommandPersistence&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.run" />
+        <item itemvalue="Python tests.Python tests for tests.models.test_execution_log.TestExecutionLogPersistence" />
+        <item itemvalue="Python tests.Python tests for tests.models.test_execution_log.TestExecutionLogBehavior.test_create_log_helper" />
+        <item itemvalue="Python tests.Python tests for tests.models.test_telecommand.TestTelecommandPersistence" />
+        <item itemvalue="Python tests.Python tests for tests.models.test_telecommand.TestTelecommandBehavior" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-07523f343e4f-968fe969f28a-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.28539.27" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="5a258aca-caaf-46d0-a1f6-b18564a14b59" name="Changes" comment="" />
+      <created>1767832914230</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1767832914230</updated>
+      <workItem from="1767832915372" duration="59000" />
+      <workItem from="1767833115587" duration="3068000" />
+      <workItem from="1767836463559" duration="67530000" />
+      <workItem from="1768278567556" duration="7582000" />
+      <workItem from="1768402087930" duration="28000" />
+      <workItem from="1768402129712" duration="8111000" />
+      <workItem from="1768415064314" duration="549000" />
+      <workItem from="1768424966651" duration="7507000" />
+      <workItem from="1774219995480" duration="7555000" />
+      <workItem from="1775043904752" duration="1856000" />
+    </task>
+    <task id="LOCAL-00001" summary="test: add database integration tests&#10;&#10;- Add comprehensive test suite for database operations&#10;- Implement test cases for operators, satellites, telecommands, and execution logs&#10;- Add test for get_satellite_command_stats function&#10;- Configure test database connection using environment variables&#10;- Ensure test isolation and proper cleanup&#10;- Add type hints and docstrings for better maintainability&#10;&#10;The test suite verifies that all basic CRUD operations work as expected with the existing database schema and data.">
+      <option name="closed" value="true" />
+      <created>1767850010748</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1767850010749</updated>
+    </task>
+    <task id="LOCAL-00002" summary="feat: implement Operator model with comprehensive test suite&#10;&#10;- Add Operator model with SQLAlchemy ORM mapping&#10;- Implement password hashing and verification&#10;- Add input validation and constraints&#10;- Include comprehensive test suite with 11 test cases&#10;- Set up test database configuration&#10;- Add type hints and docstrings for better maintainability&#10;&#10;The Operator model includes:&#10;- Core fields: username, email, full_name, password&#10;- Role-based access control (admin/operator/viewer)&#10;- Account status management&#10;- Automatic timestamps for creation and last login&#10;- Secure password handling with werkzeug.security&#10;&#10;Tests cover:&#10;- Database connection and table structure&#10;- CRUD operations&#10;- Data validation and constraints&#10;- Password hashing and verification&#10;- Role and status validation">
+      <option name="closed" value="true" />
+      <created>1767924652004</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1767924652004</updated>
+    </task>
+    <task id="LOCAL-00003" summary="feat: implement Satellite model with comprehensive test suite&#10;&#10;- Add Satellite model with SQLAlchemy ORM mapping&#10;- Include automatic timestamp management (created_at, updated_at)&#10;- Add status validation with allowed values: active, inactive, maintenance&#10;- Implement 12 test cases covering CRUD operations and validations&#10;- Set up test database configuration for satellite tests&#10;- Add type hints and docstrings for better maintainability&#10;&#10;The Satellite model includes:&#10;- Core fields: name, code, description, status&#10;- Automatic timestamp management&#10;- Status validation&#10;- Relationship with Telecommand model (commented for now)&#10;- to_dict() method for JSON serialization&#10;&#10;Tests cover:&#10;- Database connection and table structure&#10;- CRUD operations&#10;- Field validations (required fields, status values)&#10;- Code uniqueness constraint&#10;- Timestamp auto-updates&#10;- Data integrity checks&#10;&#10;Dependencies:&#10;- SQLAlchemy for ORM&#10;- pytest for testing&#10;- PostgreSQL for database">
+      <option name="closed" value="true" />
+      <created>1767928454356</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1767928454356</updated>
+    </task>
+    <task id="LOCAL-00004" summary="feat: implement telecommand model with comprehensive test suite">
+      <option name="closed" value="true" />
+      <created>1768138640885</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1768138640885</updated>
+    </task>
+    <task id="LOCAL-00005" summary="feat: implement core models, comprehensive tests, and web dashboard&#10;&#10;**Models:**&#10;- Refactor `Operator`, `Satellite`, `Telecommand`, and `ExecutionLog` models.&#10;- Implement proper SQLAlchemy relationships and database constraints (Foreign Keys, Check Constraints).&#10;- Fix timezone handling (ensure UTC awareness) and server-side defaults for timestamps.&#10;- Update `Telecommand` logic to reassign to Admin (ID 1) upon Operator deletion.&#10;&#10;**Tests:**&#10;- Add comprehensive test suite using `pytest` for all models.&#10;- Implement &quot;Separation of Concerns&quot; pattern: split tests into `Behavior` (Logic) and `Persistence` (DB Integration).&#10;- Fix transaction management in tests using `begin_nested` and proper rollback strategies.&#10;- Enable Foreign Key support for SQLite in test environment.&#10;&#10;**Web Interface:**&#10;- Initialize Flask application structure (App Factory pattern, Blueprints).&#10;- Create `web_routes` for Dashboard, Create, and Delete operations.&#10;- Implement Bootstrap 5 frontend with `base.html` layout and `index.html` dashboard.&#10;- Add Dashboard Cards (Pending, Sent, History) and Modals for interaction.&#10;&#10;**Configuration:**&#10;- Update `DatabaseManager` to allow explicit database type selection (PostgreSQL vs SQLite).&#10;- Create `run.py` entry point.">
+      <option name="closed" value="true" />
+      <created>1768283889925</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1768283889925</updated>
+    </task>
+    <task id="LOCAL-00006" summary="feat(ui): implement mission control dashboard and json parameter editor&#10;&#10;- Redesign web interface with a modern, dark-themed &quot;Mission Control&quot; UI.&#10;- Add responsive sidebar for Satellites and Operators status.&#10;- Implement interactive Dashboard with real-time counters (Pending, Sent, History).&#10;- Add AJAX-based JSON editor for Telecommand parameters (view/edit/save).&#10;- Create API endpoint `POST /telecommand/update/&lt;id&gt;` for parameter updates.&#10;- Improve UX with modal-based workflows for creation, details, and deletion.">
+      <option name="closed" value="true" />
+      <created>1768405347252</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1768405347252</updated>
+    </task>
+    <task id="LOCAL-00007" summary="fix(ui): resolve modal interaction issues and enable full telecommand editing&#10;&#10;- Fix HTML attribute quoting in `onclick` handlers to support JSON payloads (resolves modal not opening).&#10;- Implement client-side search/filtering for the &quot;All Telecommands&quot; table.&#10;- Upgrade Details Modal to a full Editing Form:&#10;  - Allow editing of Satellite, Command Type, Priority, and Status.&#10;  - Keep Operator field read-only for audit purposes.&#10;  - Pre-fill all fields correctly using data from the backend.&#10;- Update `saveTelecommand` JS function to submit all modified fields to the API.">
+      <option name="closed" value="true" />
+      <created>1768408508804</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1768408508805</updated>
+    </task>
+    <task id="LOCAL-00008" summary="feat: initial commit of Satellite TC Generator Web">
+      <option name="closed" value="true" />
+      <created>1768408651189</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1768408651189</updated>
+    </task>
+    <task id="LOCAL-00009" summary="feat(satellite): implement full CRUD management via interactive modal&#10;&#10;- Add `onclick` event to the satellite list in the sidebar to open a dedicated management modal.&#10;- Create a new modal (`satelliteModal`) for editing satellite details (Name, Code, Status, and Description).&#10;- Implement a &quot;Create New&quot; button in the modal, allowing users to clone an existing satellite's data to create a new entry.&#10;- Add backend API endpoints for satellite Create, Update, and Delete (`/satellite/create`, `/satellite/update/&lt;id&gt;`, `/satellite/delete/&lt;id&gt;`).&#10;- Implement server-side validation to handle unique satellite codes (`IntegrityError`) and return user-friendly error messages.&#10;- Enhance the delete functionality with a confirmation dialog that warns the user about the cascading deletion of associated telecommands.">
+      <option name="closed" value="true" />
+      <created>1768410214792</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1768410214792</updated>
+    </task>
+    <task id="LOCAL-00010" summary="style(ui): add project logo to header for improved branding&#10;&#10;- Insert SpaceLab Ground Station logo into the main header of `index.html`.&#10;- Adjust header layout to accommodate the new visual identity.&#10;- Enhance the professional look and feel of the Mission Control dashboard.">
+      <option name="closed" value="true" />
+      <created>1768415588308</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1768415588308</updated>
+    </task>
+    <task id="LOCAL-00011" summary="feat(infra): add docker support for automated deployment&#10;&#10;- Create `Dockerfile` for the Flask application.&#10;- Create `docker-compose.yml` to orchestrate the Web App, PostgreSQL, and PGAdmin.&#10;- Configure automatic database initialization using `schema.sql` on container startup.&#10;- Update `readme.md` with comprehensive instructions for Docker and local execution.&#10;- Add `.env.example` for environment configuration.">
+      <option name="closed" value="true" />
+      <created>1768432855685</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1768432855685</updated>
+    </task>
+    <task id="LOCAL-00012" summary="update: updated docker support for automated deployment">
+      <option name="closed" value="true" />
+      <created>1768433239427</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1768433239427</updated>
+    </task>
+    <task id="LOCAL-00013" summary="update: updated docker support for automated deployment">
+      <option name="closed" value="true" />
+      <created>1768433282105</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1768433282105</updated>
+    </task>
+    <task id="LOCAL-00014" summary="update: updated docker support for automated deployment">
+      <option name="closed" value="true" />
+      <created>1768433384930</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1768433384930</updated>
+    </task>
+    <task id="LOCAL-00015" summary="update: updated readme file">
+      <option name="closed" value="true" />
+      <created>1774221584181</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1774221584181</updated>
+    </task>
+    <task id="LOCAL-00016" summary="update: updated fine tunning in docker-compose file">
+      <option name="closed" value="true" />
+      <created>1774221981989</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1774221981989</updated>
+    </task>
+    <task id="LOCAL-00017" summary="update: The readme file has been updated with a section in English in the resources/database">
+      <option name="closed" value="true" />
+      <created>1774231900316</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1774231900317</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="origin/main" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="test: add database integration tests&#10;&#10;- Add comprehensive test suite for database operations&#10;- Implement test cases for operators, satellites, telecommands, and execution logs&#10;- Add test for get_satellite_command_stats function&#10;- Configure test database connection using environment variables&#10;- Ensure test isolation and proper cleanup&#10;- Add type hints and docstrings for better maintainability&#10;&#10;The test suite verifies that all basic CRUD operations work as expected with the existing database schema and data." />
+    <MESSAGE value="feat: implement Operator model with comprehensive test suite&#10;&#10;- Add Operator model with SQLAlchemy ORM mapping&#10;- Implement password hashing and verification&#10;- Add input validation and constraints&#10;- Include comprehensive test suite with 11 test cases&#10;- Set up test database configuration&#10;- Add type hints and docstrings for better maintainability&#10;&#10;The Operator model includes:&#10;- Core fields: username, email, full_name, password&#10;- Role-based access control (admin/operator/viewer)&#10;- Account status management&#10;- Automatic timestamps for creation and last login&#10;- Secure password handling with werkzeug.security&#10;&#10;Tests cover:&#10;- Database connection and table structure&#10;- CRUD operations&#10;- Data validation and constraints&#10;- Password hashing and verification&#10;- Role and status validation" />
+    <MESSAGE value="Update .gitignore and remove ignored files from tracking." />
+    <MESSAGE value="Update .gitignore and remove ignored files from tracking." />
+    <MESSAGE value="feat: implement Satellite model with comprehensive test suite&#10;&#10;- Add Satellite model with SQLAlchemy ORM mapping&#10;- Include automatic timestamp management (created_at, updated_at)&#10;- Add status validation with allowed values: active, inactive, maintenance&#10;- Implement 12 test cases covering CRUD operations and validations&#10;- Set up test database configuration for satellite tests&#10;- Add type hints and docstrings for better maintainability&#10;&#10;The Satellite model includes:&#10;- Core fields: name, code, description, status&#10;- Automatic timestamp management&#10;- Status validation&#10;- Relationship with Telecommand model (commented for now)&#10;- to_dict() method for JSON serialization&#10;&#10;Tests cover:&#10;- Database connection and table structure&#10;- CRUD operations&#10;- Field validations (required fields, status values)&#10;- Code uniqueness constraint&#10;- Timestamp auto-updates&#10;- Data integrity checks&#10;&#10;Dependencies:&#10;- SQLAlchemy for ORM&#10;- pytest for testing&#10;- PostgreSQL for database" />
+    <MESSAGE value="feat: implement telecommand model with comprehensive test suite" />
+    <MESSAGE value="feat: implement core models, comprehensive tests, and web dashboard&#10;&#10;**Models:**&#10;- Refactor `Operator`, `Satellite`, `Telecommand`, and `ExecutionLog` models.&#10;- Implement proper SQLAlchemy relationships and database constraints (Foreign Keys, Check Constraints).&#10;- Fix timezone handling (ensure UTC awareness) and server-side defaults for timestamps.&#10;- Update `Telecommand` logic to reassign to Admin (ID 1) upon Operator deletion.&#10;&#10;**Tests:**&#10;- Add comprehensive test suite using `pytest` for all models.&#10;- Implement &quot;Separation of Concerns&quot; pattern: split tests into `Behavior` (Logic) and `Persistence` (DB Integration).&#10;- Fix transaction management in tests using `begin_nested` and proper rollback strategies.&#10;- Enable Foreign Key support for SQLite in test environment.&#10;&#10;**Web Interface:**&#10;- Initialize Flask application structure (App Factory pattern, Blueprints).&#10;- Create `web_routes` for Dashboard, Create, and Delete operations.&#10;- Implement Bootstrap 5 frontend with `base.html` layout and `index.html` dashboard.&#10;- Add Dashboard Cards (Pending, Sent, History) and Modals for interaction.&#10;&#10;**Configuration:**&#10;- Update `DatabaseManager` to allow explicit database type selection (PostgreSQL vs SQLite).&#10;- Create `run.py` entry point." />
+    <MESSAGE value="feat(ui): implement mission control dashboard and json parameter editor&#10;&#10;- Redesign web interface with a modern, dark-themed &quot;Mission Control&quot; UI.&#10;- Add responsive sidebar for Satellites and Operators status.&#10;- Implement interactive Dashboard with real-time counters (Pending, Sent, History).&#10;- Add AJAX-based JSON editor for Telecommand parameters (view/edit/save).&#10;- Create API endpoint `POST /telecommand/update/&lt;id&gt;` for parameter updates.&#10;- Improve UX with modal-based workflows for creation, details, and deletion." />
+    <MESSAGE value="fix(ui): resolve modal interaction issues and enable full telecommand editing&#10;&#10;- Fix HTML attribute quoting in `onclick` handlers to support JSON payloads (resolves modal not opening).&#10;- Implement client-side search/filtering for the &quot;All Telecommands&quot; table.&#10;- Upgrade Details Modal to a full Editing Form:&#10;  - Allow editing of Satellite, Command Type, Priority, and Status.&#10;  - Keep Operator field read-only for audit purposes.&#10;  - Pre-fill all fields correctly using data from the backend.&#10;- Update `saveTelecommand` JS function to submit all modified fields to the API." />
+    <MESSAGE value="feat: initial commit of Satellite TC Generator Web" />
+    <MESSAGE value="feat(satellite): implement full CRUD management via interactive modal&#10;&#10;- Add `onclick` event to the satellite list in the sidebar to open a dedicated management modal.&#10;- Create a new modal (`satelliteModal`) for editing satellite details (Name, Code, Status, and Description).&#10;- Implement a &quot;Create New&quot; button in the modal, allowing users to clone an existing satellite's data to create a new entry.&#10;- Add backend API endpoints for satellite Create, Update, and Delete (`/satellite/create`, `/satellite/update/&lt;id&gt;`, `/satellite/delete/&lt;id&gt;`).&#10;- Implement server-side validation to handle unique satellite codes (`IntegrityError`) and return user-friendly error messages.&#10;- Enhance the delete functionality with a confirmation dialog that warns the user about the cascading deletion of associated telecommands." />
+    <MESSAGE value="style(ui): add project logo to header for improved branding&#10;&#10;- Insert SpaceLab Ground Station logo into the main header of `index.html`.&#10;- Adjust header layout to accommodate the new visual identity.&#10;- Enhance the professional look and feel of the Mission Control dashboard." />
+    <MESSAGE value="feat(infra): add docker support for automated deployment&#10;&#10;- Create `Dockerfile` for the Flask application.&#10;- Create `docker-compose.yml` to orchestrate the Web App, PostgreSQL, and PGAdmin.&#10;- Configure automatic database initialization using `schema.sql` on container startup.&#10;- Update `readme.md` with comprehensive instructions for Docker and local execution.&#10;- Add `.env.example` for environment configuration." />
+    <MESSAGE value="update: updated docker support for automated deployment" />
+    <MESSAGE value="update: updated readme file" />
+    <MESSAGE value="update: updated fine tunning in docker-compose file" />
+    <MESSAGE value="update: The readme file has been updated with a section in English in the resources/database" />
+    <option name="LAST_COMMIT_MESSAGE" value="update: The readme file has been updated with a section in English in the resources/database" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/tc_generator_web$run.coverage" NAME="run Coverage Results" MODIFIED="1775044077739" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/tc_generator_web$.coverage" NAME=" Coverage Results" MODIFIED="1768280664596" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/tc_generator_web$connector.coverage" NAME="connector Coverage Results" MODIFIED="1767838560601" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/app/database" />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
+  </component>
+</project>

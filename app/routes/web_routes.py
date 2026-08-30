@@ -1,51 +1,37 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
-from sqlalchemy import desc
-from sqlalchemy.exc import IntegrityError
-import json
-from app.database.factories.database_manager import DatabaseManager
-from app.models.telecommand import Telecommand
-from app.models.satellite import Satellite
-from app.models.operator import Operator
+import logging
 
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
+
+from app.database.factories.database_manager import DatabaseManager
+from app.models.operator import Operator
+from app.services.satellite_service import SatelliteService
+from app.services.telecommand_service import TelecommandService
+
+logger = logging.getLogger(__name__)
 web_bp = Blueprint('web', __name__)
+
 
 @web_bp.route('/')
 def index():
-    """Render the main dashboard with telecommands grouped by status."""
+    """Render the dashboard with grouped telecommand status data."""
+    logger.info("Loading dashboard page")
     session = DatabaseManager.get_session()
     try:
-        # Fetch recent telecommands grouped by status
-        # We limit to 10 per category for performance/cleanliness
-        pending_tcs = session.query(Telecommand)\
-            .filter(Telecommand.status.in_(['pending', 'queued']))\
-            .order_by(desc(Telecommand.created_at))\
-            .limit(10).all()
-
-        sent_tcs = session.query(Telecommand)\
-            .filter(Telecommand.status == 'sent')\
-            .order_by(desc(Telecommand.sent_at))\
-            .limit(10).all()
-
-        # History: Confirmed or Failed
-        history_tcs = session.query(Telecommand)\
-            .filter(Telecommand.status.in_(['confirmed', 'failed']))\
-            .order_by(desc(Telecommand.created_at))\
-            .limit(10).all()
-            
-        # Fetch all satellites (not just active) for the sidebar list
-        satellites = session.query(Satellite).order_by(Satellite.name).all()
-        
-        # Fetch operators (In a real app, this would be the logged-in user)
+        dashboard = TelecommandService.get_dashboard_data()
+        satellites = SatelliteService.list_all()
         operators = session.query(Operator).filter_by(status='active').all()
 
         return render_template(
             'index.html',
-            pending_tcs=pending_tcs,
-            sent_tcs=sent_tcs,
-            history_tcs=history_tcs,
+            pending_tcs=dashboard['pending_tcs'],
+            sent_tcs=dashboard['sent_tcs'],
+            history_tcs=dashboard['history_tcs'],
             satellites=satellites,
-            operators=operators
+            operators=operators,
         )
+    except Exception:
+        logger.exception("Failed to load dashboard data")
+        raise
     finally:
         session.close()
 
@@ -54,100 +40,53 @@ def index():
 @web_bp.route('/telecommand/create', methods=['POST'])
 def create_telecommand():
     """Handle telecommand creation form submission."""
-    session = DatabaseManager.get_session()
+    logger.info("Creating telecommand via web form")
     try:
-        data = request.form
-        
-        # Parse parameters JSON if provided
-        params = {}
-        if data.get('parameters'):
-            try:
-                params = json.loads(data['parameters'])
-            except json.JSONDecodeError:
-                flash('Invalid JSON in parameters field', 'warning')
-                return redirect(url_for('web.index'))
-
-        new_tc = Telecommand(
-            satellite_id=int(data['satellite_id']),
-            operator_id=int(data['operator_id']),
-            command_type=data['command_type'],
-            priority=int(data['priority']),
-            status='pending',
-            parameters=params
-        )
-        
-        session.add(new_tc)
-        session.commit()
+        payload = request.form.to_dict()
+        TelecommandService.create(payload)
         flash('Telecommand created successfully!', 'success')
-        
-    except Exception as e:
-        session.rollback()
-        flash(f'Error creating telecommand: {str(e)}', 'danger')
-    finally:
-        session.close()
-        
+    except ValueError as exc:
+        logger.warning("Invalid telecommand creation payload: %s", exc)
+        flash(str(exc), 'warning')
+    except Exception:
+        logger.exception("Unexpected failure while creating telecommand")
+        flash('Error creating telecommand.', 'danger')
     return redirect(url_for('web.index'))
 
 @web_bp.route('/telecommand/update/<int:tc_id>', methods=['POST'])
 def update_telecommand(tc_id):
     """Handle telecommand updates via AJAX."""
-    session = DatabaseManager.get_session()
+    logger.info("Updating telecommand %s", tc_id)
     try:
-        tc = session.get(Telecommand, tc_id)
-        if not tc:
-            return jsonify({'success': False, 'error': 'Telecommand not found'}), 404
-            
-        # Get JSON data from request body
-        data = request.get_json()
+        data = request.get_json(silent=True)
         if not data:
             return jsonify({'success': False, 'error': 'No data provided'}), 400
 
-        # Update fields if provided
-        if 'parameters' in data:
-            tc.parameters = data['parameters']
-        
-        if 'satellite_id' in data:
-            tc.satellite_id = int(data['satellite_id'])
-            
-        if 'command_type' in data:
-            tc.command_type = data['command_type']
-            
-        if 'priority' in data:
-            tc.priority = int(data['priority'])
-            
-        if 'status' in data:
-            if hasattr(tc, 'update_status'):
-                tc.update_status(data['status'])
-            else:
-                tc.status = data['status']
-            
-        session.commit()
+        TelecommandService.update(tc_id, data)
         return jsonify({'success': True, 'message': 'Telecommand updated successfully'})
-        
-    except Exception as e:
-        session.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 500
-    finally:
-        session.close()
+    except LookupError as exc:
+        logger.warning("Telecommand update failed: %s", exc)
+        return jsonify({'success': False, 'error': str(exc)}), 404
+    except ValueError as exc:
+        logger.warning("Telecommand update validation failed: %s", exc)
+        return jsonify({'success': False, 'error': str(exc)}), 400
+    except Exception:
+        logger.exception("Unexpected failure while updating telecommand %s", tc_id)
+        return jsonify({'success': False, 'error': 'Unexpected error while updating telecommand'}), 500
 
 @web_bp.route('/telecommand/delete/<int:tc_id>', methods=['POST'])
 def delete_telecommand(tc_id):
     """Handle telecommand deletion."""
-    session = DatabaseManager.get_session()
+    logger.info("Deleting telecommand %s", tc_id)
     try:
-        tc = session.get(Telecommand, tc_id)
-        if tc:
-            session.delete(tc)
-            session.commit()
-            flash(f'Telecommand {tc_id} deleted.', 'success')
-        else:
-            flash('Telecommand not found.', 'warning')
-    except Exception as e:
-        session.rollback()
-        flash(f'Error deleting: {str(e)}', 'danger')
-    finally:
-        session.close()
-        
+        TelecommandService.delete(tc_id)
+        flash(f'Telecommand {tc_id} deleted.', 'success')
+    except LookupError as exc:
+        logger.warning("Delete failed: %s", exc)
+        flash(str(exc), 'warning')
+    except Exception:
+        logger.exception("Unexpected failure while deleting telecommand %s", tc_id)
+        flash('Error deleting telecommand.', 'danger')
     return redirect(url_for('web.index'))
 
 # --- Satellite Routes ---
@@ -155,76 +94,60 @@ def delete_telecommand(tc_id):
 @web_bp.route('/satellite/create', methods=['POST'])
 def create_satellite():
     """Handle satellite creation via AJAX."""
-    session = DatabaseManager.get_session()
+    logger.info("Creating satellite via API")
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True)
         if not data:
             return jsonify({'success': False, 'error': 'No data provided'}), 400
 
-        new_sat = Satellite(
-            name=data['name'],
-            code=data['code'],
-            status=data['status'],
-            description=data.get('description', '')
-        )
-        
-        session.add(new_sat)
-        session.commit()
+        SatelliteService.create(data)
         return jsonify({'success': True, 'message': 'Satellite created successfully'})
-        
-    except IntegrityError:
-        session.rollback()
-        return jsonify({'success': False, 'error': 'Satellite code must be unique.'}), 400
-    except Exception as e:
-        session.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 500
-    finally:
-        session.close()
+    except ValueError as exc:
+        logger.warning("Satellite creation failed: %s", exc)
+        return jsonify({'success': False, 'error': str(exc)}), 400
+    except Exception:
+        logger.exception("Unexpected failure while creating satellite")
+        return jsonify({'success': False, 'error': 'Unexpected error while creating satellite'}), 500
 
 @web_bp.route('/satellite/update/<int:sat_id>', methods=['POST'])
 def update_satellite(sat_id):
     """Handle satellite updates via AJAX."""
-    session = DatabaseManager.get_session()
+    logger.info("Updating satellite %s", sat_id)
     try:
-        sat = session.get(Satellite, sat_id)
-        if not sat:
-            return jsonify({'success': False, 'error': 'Satellite not found'}), 404
-            
-        data = request.get_json()
-        
-        if 'name' in data: sat.name = data['name']
-        if 'code' in data: sat.code = data['code']
-        if 'status' in data: sat.status = data['status']
-        if 'description' in data: sat.description = data['description']
-        
-        session.commit()
+        data = request.get_json(silent=True)
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+
+        SatelliteService.update(sat_id, data)
         return jsonify({'success': True, 'message': 'Satellite updated successfully'})
-        
-    except IntegrityError:
-        session.rollback()
-        return jsonify({'success': False, 'error': 'Satellite code must be unique.'}), 400
-    except Exception as e:
-        session.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 500
-    finally:
-        session.close()
+    except LookupError as exc:
+        logger.warning("Satellite update failed: %s", exc)
+        return jsonify({'success': False, 'error': str(exc)}), 404
+    except ValueError as exc:
+        logger.warning("Satellite update validation failed: %s", exc)
+        return jsonify({'success': False, 'error': str(exc)}), 400
+    except Exception:
+        logger.exception("Unexpected failure while updating satellite %s", sat_id)
+        return jsonify({'success': False, 'error': 'Unexpected error while updating satellite'}), 500
 
 @web_bp.route('/satellite/delete/<int:sat_id>', methods=['POST'])
 def delete_satellite(sat_id):
     """Handle satellite deletion."""
-    session = DatabaseManager.get_session()
+    logger.info("Deleting satellite %s", sat_id)
     try:
-        sat = session.get(Satellite, sat_id)
-        if sat:
-            session.delete(sat)
-            session.commit()
-            flash(f'Satellite {sat.name} deleted.', 'success')
-        else:
-            flash('Satellite not found.', 'warning')
-    except Exception as e:
-        session.rollback()
-        flash(f'Error deleting satellite: {str(e)}', 'danger')
-    finally:
-        session.close()
-        
+        SatelliteService.delete(sat_id)
+        flash(f'Satellite {sat_id} deleted.', 'success')
+    except LookupError as exc:
+        logger.warning("Satellite delete failed: %s", exc)
+        flash(str(exc), 'warning')
+    except Exception:
+        logger.exception("Unexpected failure while deleting satellite %s", sat_id)
+        flash('Error deleting satellite.', 'danger')
     return redirect(url_for('web.index'))
+
+@web_bp.route('/spectrum-monitor')
+def spectrum_monitor():
+    """Render the RF signal monitoring page."""
+    logger.info("Loading spectrum monitor page")
+    return render_template('spectrum-monitor.html')
+

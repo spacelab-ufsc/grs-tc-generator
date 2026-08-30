@@ -17,8 +17,8 @@ def load_environment():
     load_dotenv()
     
     required_vars = [
-        'DB_HOST', 'DB_PORT', 'DB_NAME',
-        'DB_USER', 'DB_PASSWORD'
+        'DB_HOST', 'DB_PORT_INTERNAL', 'DB_NAME_TELECOMMAND',
+        'DB_ADMIN_USER', 'DB_ADMIN_PASSWORD'
     ]
     
     config = {}

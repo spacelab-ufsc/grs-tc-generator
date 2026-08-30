@@ -15,31 +15,69 @@
 This module is part of the **Control Server** in the Ground Station software stack. It provides a modern web interface for operators to generate, schedule, and manage satellite telecommands (TC).
 
 ### 🚀 Key Features
-- **Clean Architecture**: Separation of concerns using Models, Routes, and Templates.
-- **Robust Data Modeling**: SQLAlchemy 2.0 ORM with comprehensive constraints and relationships.
+- **Professional MVC Architecture**: Separation of concerns with Models, Routes (Controllers), Services, and Templates (Views).
+- **Service Layer**: Dedicated business logic layer (`TelecommandService`, `SatelliteService`) for clean separation from HTTP concerns.
+- **Structured Logging**: Comprehensive logging throughout the application for traceability and debugging.
+- **Robust Data Modeling**: SQLAlchemy 2.0 ORM with comprehensive constraints, relationships, and eager-loading optimization.
 - **Database Factory**: Modular support for PostgreSQL (Production/Docker) and SQLite (Local testing).
 - **Modern UI**: Responsive "Mission Control" Dashboard built with Bootstrap 5.
 - **Dockerized**: Fully automated setup with Docker Compose.
+- **Signal Detection**: Real-time UDP packet monitoring with configurable thresholds and hysteresis-based false positive reduction.
 
 ### 📂 Project Structure
 ```plaintext
 /tc_generator_web
 ├── app
-│   ├── __init__.py          # Application Factory
-│   ├── database             # DB Adapters & Factory
-│   ├── models               # SQLAlchemy Models
-│   ├── routes               # Web Controllers
-│   └── templates            # HTML Views (Jinja2)
-├── tests                    # Test Suite
+│   ├── __init__.py                    # Application Factory
+│   ├── database                       # DB Adapters & Factory
+│   │   └── factories
+│   │       └── database_manager.py    # Session Management
+│   ├── models                         # SQLAlchemy ORM Models
+│   │   ├── operator.py
+│   │   ├── satellite.py
+│   │   ├── telecommand.py
+│   │   └── execution_log.py
+│   ├── routes                         # Web Controllers (HTTP Handlers)
+│   │   └── web_routes.py              # Thin route layer delegating to services
+│   ├── services                       # Business Logic Layer (NEW)
+│   │   ├── __init__.py
+│   │   ├── telecommand_service.py     # Telecommand CRUD & Dashboard Logic
+│   │   └── satellite_service.py       # Satellite CRUD & Management
+│   └── templates                      # HTML Views (Jinja2)
+│       ├── index.html                 # Dashboard
+│       └── spectrum-monitor.html      # RF Signal Monitoring
+├── tests                              # Test Suite
 ├── resources
-│   └── database             # SQL Scripts (Schema)
-├── docker-compose.yml       # Container Orchestration
-├── Dockerfile               # App Container Definition
-├── run.py                   # Entry Point
-└── requirements.txt
+│   └── database                       # SQL Scripts (Schema)
+├── docker-compose.yml                 # Container Orchestration
+├── Dockerfile                         # App Container Definition
+├── run.py                             # Entry Point (UDP Worker + Flask Server)
+└── requirements.txt                   # Python Dependencies
 ```
+
+### 🏗️ Architecture Overview
+
+The tc-generator follows a **professional MVC + Service Layer** architecture:
+
+```
+HTTP Request
+    ↓
+  Routes (Controllers) ← thin layer, handles HTTP concerns
+    ↓
+  Services (Business Logic) ← encapsulates telecommand/satellite operations
+    ↓
+  Models (Domain Objects) ← SQLAlchemy ORM entities with eager-loading
+    ↓
+Database (PostgreSQL) ← persistent data store
+```
+
+**Key Design Decisions:**
+- **Services are stateless**: Each service method opens and closes its own session, ensuring proper resource cleanup and avoiding detached-instance errors.
+- **Eager Loading**: Related entities (satellite, operator) are eager-loaded within service queries before the session closes, so Jinja2 templates can safely access relationships.
+- **Logging**: Every operation is logged for operational visibility and debugging (INFO for successful actions, WARNING for validation issues, ERROR for exceptions).
+- **Structured Error Handling**: Services raise domain-specific exceptions (ValueError, LookupError) that routes convert to appropriate HTTP responses.
+
 ---
-### Class Diagram
 ```mermaid
 classDiagram
     class Operator {
@@ -91,7 +129,51 @@ classDiagram
 
 ---
 
-### 🛠️ How to Run (Quick Start with Docker)
+### � Service Layer Implementation
+
+The application follows a **professional service-oriented architecture** with the following services:
+
+#### **TelecommandService**
+Encapsulates all telecommand business logic:
+- `get_dashboard_data()`: Retrieves grouped telecommands (pending, sent, history) with eager-loaded relationships
+- `create(data)`: Validates and persists new telecommands
+- `update(tc_id, data)`: Applies updates to existing telecommands
+- `delete(tc_id)`: Removes telecommands
+
+**Key features:**
+- Eager-loads `satellite` and `operator` relationships to prevent detached-instance errors in templates
+- Structured error handling with specific exception types
+- Comprehensive logging for audit trails
+
+#### **SatelliteService**
+Manages satellite CRUD operations and validation:
+- `list_all()`: Retrieves all satellites
+- `create(data)`: Creates new satellite records
+- `update(sat_id, data)`: Updates satellite details
+- `delete(sat_id)`: Removes satellites
+
+---
+
+### 📝 Logging Standards
+
+All operations are logged using Python's `logging` module:
+
+- **INFO**: Successful operations (e.g., "Telecommand created: SYSTEM_REBOOT")
+- **WARNING**: Validation failures or recoverable issues (e.g., "Invalid telecommand payload")
+- **ERROR**: Exceptions and unrecoverable failures (with full traceback)
+
+Example log output:
+```
+2026-08-30 15:19:09 INFO Loading dashboard page
+2026-08-30 15:19:09 INFO Creating telecommand via web form
+2026-08-30 15:19:09 INFO Telecommand created: SYSTEM_REBOOT for satellite 1
+2026-08-30 15:19:09 INFO Updating satellite 3
+2026-08-30 15:19:09 INFO Satellite updated: Catarina-A1 (SAT-OBS-001)
+```
+
+---
+
+### �🛠️ How to Run (Quick Start with Docker)
 
 The easiest way to run the project is using Docker Compose. This will set up the Database, Web App, and PGAdmin automatically.
 
@@ -189,7 +271,7 @@ If you prefer to run the Python application locally (outside Docker) for debuggi
 Create a `.env` file in the root directory:
 ```bash
     # Connection String: dialect+driver://username:password@host:port/database
-    export PG_DATABASE_URL="postgresql+psycopg2://admin:admin@localhost:5432/tc_generator"
+    export PG_DATABASE_URL="postgresql+psycopg2://admin:admin@localhost:5432/telecommand_db"
 ```
 
 #### 3. Install Dependencies
@@ -211,12 +293,59 @@ Create a `.env` file in the root directory:
 Este módulo é parte do **Control Server** na estrutura de software da Estação Terrestre. Ele fornece uma interface web moderna para que operadores possam gerar, agendar e gerenciar telecomandos (TC) de satélites.
 
 ### 🚀 Principais Funcionalidades
-- **Arquitetura Limpa**: Separação de responsabilidades usando Models, Routes e Templates.
-- **Modelagem Robusta**: ORM SQLAlchemy 2.0 com restrições e relacionamentos completos.
+- **Arquitetura MVC Profissional**: Separação de responsabilidades com Models, Routes (Controllers), Services e Templates (Views).
+- **Camada de Serviços**: Camada dedicada de lógica de negócios (`TelecommandService`, `SatelliteService`) para separação limpa das preocupações HTTP.
+- **Logging Estruturado**: Logging abrangente em toda a aplicação para rastreabilidade e depuração.
+- **Modelagem Robusta**: ORM SQLAlchemy 2.0 com restrições, relacionamentos e otimização de eager-loading.
 - **Interface Moderna**: Dashboard estilo "Mission Control" responsivo.
 - **Dockerizado**: Configuração automatizada com Docker Compose.
+- **Detecção de Sinais**: Monitoramento de pacotes UDP em tempo real com limiar configurável e redução de falsos positivos baseada em histerese.
 
-### 🛠️ Como Executar (Rápido com Docker)
+---
+
+### 🏗️ Camada de Serviços
+
+A aplicação segue uma **arquitetura orientada a serviços profissional** com os seguintes serviços:
+
+#### **TelecommandService**
+Encapsula toda a lógica de negócios de telecomandos:
+- `get_dashboard_data()`: Recupera telecomandos agrupados (pendentes, enviados, histórico) com relacionamentos carregados antecipadamente
+- `create(data)`: Valida e persiste novos telecomandos
+- `update(tc_id, data)`: Aplica atualizações a telecomandos existentes
+- `delete(tc_id)`: Remove telecomandos
+
+**Características principais:**
+- Carregamento antecipado de relacionamentos `satellite` e `operator` para evitar erros de instância destacada em templates
+- Tratamento estruturado de erros com tipos de exceção específicos
+- Logging abrangente para trilhas de auditoria
+
+#### **SatelliteService**
+Gerencia operações CRUD de satélites e validação:
+- `list_all()`: Recupera todos os satélites
+- `create(data)`: Cria novos registros de satélites
+- `update(sat_id, data)`: Atualiza detalhes do satélite
+- `delete(sat_id)`: Remove satélites
+
+---
+
+### 📝 Padrões de Logging
+
+Todas as operações são registradas usando o módulo `logging` do Python:
+
+- **INFO**: Operações bem-sucedidas (ex: "Telecommand created: SYSTEM_REBOOT")
+- **WARNING**: Falhas de validação ou problemas recuperáveis (ex: "Invalid telecommand payload")
+- **ERROR**: Exceções e falhas irrecuperáveis (com rastreamento completo)
+
+Exemplo de saída de log:
+```
+2026-08-30 15:19:09 INFO Loading dashboard page
+2026-08-30 15:19:09 INFO Creating telecommand via web form
+2026-08-30 15:19:09 INFO Telecommand created: SYSTEM_REBOOT for satellite 1
+2026-08-30 15:19:09 INFO Updating satellite 3
+2026-08-30 15:19:09 INFO Satellite updated: Catarina-A1 (SAT-OBS-001)
+```
+
+---
 
 A maneira mais fácil de rodar o projeto é usando Docker Compose. Isso configurará o Banco de Dados, a Aplicação Web e o PGAdmin automaticamente.
 
@@ -250,7 +379,7 @@ Se preferir rodar a aplicação Python localmente (fora do Docker) para depuraç
 Crie um arquivo `.env` na raiz ou exporte as variáveis:
 ```bash
     # String de Conexão: dialect+driver://username:password@host:port/database
-    export PG_DATABASE_URL="postgresql+psycopg2://admin:admin@localhost:5432/tc_generator"
+    export PG_DATABASE_URL="postgresql+psycopg2://admin:admin@localhost:5432/telecommand_db"
 ```
 
 #### 3. Instalar Dependências

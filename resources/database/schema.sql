@@ -1,4 +1,4 @@
--- Tabelas para o banco de dados tc_generator
+-- Tabelas para o banco de dados telecommand_db
 -- O banco de dados já foi criado pelo script script_init_db.py
 
 -- Criação da tabela de satélites
@@ -156,7 +156,7 @@ ORDER BY
 LIMIT 100;
 
 -- Permissões
-GRANT ALL PRIVILEGES ON DATABASE tc_generator TO root;
+GRANT ALL PRIVILEGES ON DATABASE telecommand_db TO root;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO root;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO root;
 
